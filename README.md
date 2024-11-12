@@ -12,3 +12,5 @@ Aplica algoritmo
 Faz placement
 Faz roteamento
 Classifica
+
+TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e))), SEM INVERSORES
