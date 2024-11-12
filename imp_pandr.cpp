@@ -8,6 +8,7 @@ using namespace std;
 typedef struct node{
 
     string tipo;
+    int cor = 4;					//0 = preto-entrada real, 1 = branco-pseudo entrada,2 = mistoP- preto no topo, 3 = mistoB - branco no topo, 4 = indefinido
     struct node* esquerda = nullptr;
     struct node* direita = nullptr;
 	
@@ -17,10 +18,11 @@ void quebra_portas(string eq);
 void faz_postfix(stack<char> &postfix, string eq);
 void monta_arv(node *ptr, stack<char> &postfix);
 void printLevelOrder(node *root);
+void pinta_arv();
 
 node raiz;
 
-int main(int argc, char *argv[])					// argumento 1 atraso INV, argumento 2 atraso AND
+int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e))), SEM INVERSORES
 {
 
 	if(argc != 2)
@@ -45,7 +47,9 @@ void quebra_portas(string eq)
 	monta_arv(&raiz, postfix);
 	//cout<<"depois "<<raiz.tipo;
 	//cout<< "depois "<<raiz.direita->tipo<<endl;
+	pinta_arv(&raiz);
 	printLevelOrder(&raiz);
+	cout<< "AQUI "<< raiz.cor;
 	
 		return;
 }
@@ -105,14 +109,55 @@ void monta_arv(node *ptr, stack<char>& postfix)
 	else
 	{
 		ptr->tipo = postfix.top();
+		ptr->cor = 0;
 		postfix.pop();
 	}
 	
 	return;
 }
 
+void pinta_arv(node *root)
+{
+	//enquanto tiver filhos op, desce para aquele filho, se filhos forem ambos in, cria pseudo, pinta nodo, retorna
+	//ao retornar criar pseudo, verifica cor de filhos, roda algoritmo, se necessario flip, cascata flip para filhos mistos
+	// ao terminar percorre arvore da esquerda para a direita para obter ordem TALVEZ OUTRA FUNCAO
+	if(root->direita->tipo == '*' || root->direita->tipo == '+')
+	{
+		pinta_arv(root->direita);
+	}
+	
+	if(root->esquerda->tipo == '+' || root->esquerda->tipo == '*')
+	{
+		pinta_arv(root->esquerda);
+	}
+	else
+	{
+		root->cor = 3; //mistob = branco no topo
+	}
+	if(root->esquerda->cor != 4 && root->direita->cor != 4)
+	{
+		if(root->esquerda->cor == root->direita->cor)
+		{
+			if(root->esquerda->cor == 0)
+			{
+				root->cor = 3; // mistob = branco no topo
+			}
+			else
+			{
+				root->cor = 1; // branco
+			}
+		}
+		else
+		{
+			root->cor = 3; //mistob = branco no topo
+			//ADICIONAR FLIP
+		}
+	} 
+	return;
+}
 
-void printLevelOrder(node *root) {
+
+void printLevelOrder(node *root) {		//da internet : https://www.geeksforgeeks.org/how-to-print-data-in-binary-tree-level-by-level-in-cpp/
         if (root == nullptr) return;  
         
         // Queue to store nodes for level order traversal
@@ -125,7 +170,7 @@ void printLevelOrder(node *root) {
             // Process all nodes at the current level
             for (int i = 0; i < levelSize; ++i) {
                 node* node = q.front();  
-                cout << node->tipo << " ";  
+                cout << node->tipo<< node->cor << " ";  
                 q.pop();  
                 
                 // Enqueue esquerda child if it exists
@@ -140,12 +185,4 @@ void printLevelOrder(node *root) {
             cout << endl;  
         }
     }
-    
-    //TESTE
-    //Teste 2
-    //
-    //
-    //
-    //
-    //
 	
