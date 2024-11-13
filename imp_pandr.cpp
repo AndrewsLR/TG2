@@ -7,7 +7,7 @@ using namespace std;
 
 typedef struct node{
 
-    string tipo;
+    char tipo;
     int cor = 4;					//0 = preto-entrada real, 1 = branco-pseudo entrada,2 = mistoP- preto no topo, 3 = mistoB - branco no topo, 4 = indefinido
     struct node* esquerda = nullptr;
     struct node* direita = nullptr;
@@ -18,7 +18,8 @@ void quebra_portas(string eq);
 void faz_postfix(stack<char> &postfix, string eq);
 void monta_arv(node *ptr, stack<char> &postfix);
 void printLevelOrder(node *root);
-void pinta_arv();
+void pinta_arv(node *root);
+void retorna_ordem(node *root, stack<char> &ordem);
 
 node raiz;
 
@@ -41,16 +42,19 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 void quebra_portas(string eq)		
 {									
 	stack<char> postfix;
-	//cout<< "antes "<<raiz.tipo<<endl;
-	//cout<< "antes "<<raiz.*direita.tipo<<endl;
+	stack<char> ordem;
 	faz_postfix(postfix, eq);
 	monta_arv(&raiz, postfix);
-	//cout<<"depois "<<raiz.tipo;
-	//cout<< "depois "<<raiz.direita->tipo<<endl;
 	pinta_arv(&raiz);
 	printLevelOrder(&raiz);
-	cout<< "AQUI "<< raiz.cor;
-	
+	retorna_ordem(&raiz, ordem);
+	cout <<" ordem : ";
+	while(!ordem.empty())
+	{
+		 cout<< ordem.top()<<",";
+		ordem.pop();
+	}
+	cout<<endl;
 		return;
 }
 
@@ -118,9 +122,10 @@ void monta_arv(node *ptr, stack<char>& postfix)
 
 void pinta_arv(node *root)
 {
-	//enquanto tiver filhos op, desce para aquele filho, se filhos forem ambos in, cria pseudo, pinta nodo, retorna
+	//enquanto tiver filhos que sao operacoes, desce para aquele filho, se filhos forem ambos in, cria pseudo, pinta nodo, retorna
 	//ao retornar criar pseudo, verifica cor de filhos, roda algoritmo, se necessario flip, cascata flip para filhos mistos
 	// ao terminar percorre arvore da esquerda para a direita para obter ordem TALVEZ OUTRA FUNCAO
+	// na realidade sempre existe um pseudo, apenas compara cores dos filhos e decide cor, mudar cor caso necessario (flip)
 	if(root->direita->tipo == '*' || root->direita->tipo == '+')
 	{
 		pinta_arv(root->direita);
@@ -144,15 +149,43 @@ void pinta_arv(node *root)
 			}
 			else
 			{
-				root->cor = 1; // branco
+				if(root->direita->cor == 3)
+				{
+					root->direita->cor = 2;
+				}
+				
+				root->cor = 1;
 			}
 		}
 		else
 		{
 			root->cor = 3; //mistob = branco no topo
-			//ADICIONAR FLIP
 		}
 	} 
+	return;
+}
+
+void retorna_ordem(node *root, stack<char> &ordem) 	//se porta :coloca quebra no stack (tipo da porta) se iniciar em branco e navega filhos esquerda direita
+{													//se in : coloca in no stack
+	if(root->tipo == '+' || root->tipo == '*')
+	{
+		if(root->cor == 3 || root->cor == 1)
+		{
+			ordem.push(root->tipo);
+			retorna_ordem(root->esquerda, ordem);
+			retorna_ordem(root->direita, ordem);
+		}
+		else
+		{
+			retorna_ordem(root->direita, ordem);
+			retorna_ordem(root->esquerda, ordem);
+			ordem.push(root->tipo);
+		}
+	}
+	else
+	{
+		ordem.push(root->tipo);
+	}
 	return;
 }
 
