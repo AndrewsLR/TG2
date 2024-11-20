@@ -204,7 +204,7 @@ void faz_netlist(node *ptr, stack<int>& net_n)							// vai ate as folhas, monta
 	}
 	if(ptr->direita->tipo == '+' || ptr->direita->tipo == '*')
 	{
-		if(ptr->tipo == '+')
+		if(ptr->tipo == '+')											//ignora
 			net_n.pop();
 		faz_netlist(ptr->direita, net_n);
 	}
@@ -212,9 +212,9 @@ void faz_netlist(node *ptr, stack<int>& net_n)							// vai ate as folhas, monta
 	{
 		if(ptr->tipo == '*')																					//se for AND, em serie (pulldown)
 		{
-			if(net_n.empty())																					//se o stack estiver fazio, crio apartir do n0, do contrario, cria do stack+1
+			if(net_n.empty())																					//olha na variavel global net_number numero disponivel quando necessario criar net
 			{	
-				cout<<"n"<<net_number<<" "<<ptr->esquerda->tipo<<" GND"<<endl;
+				cout<<"n"<<net_number<<" "<<ptr->esquerda->tipo<<" GND"<<endl;									//coloca 2 transistores em serie ligado ao GND (stack vazio)
 				net_number++;
 				cout<<"n"<<net_number<<" "<<ptr->direita->tipo<<" n"<<net_number-1<<endl;
 				net_number++;
@@ -222,7 +222,7 @@ void faz_netlist(node *ptr, stack<int>& net_n)							// vai ate as folhas, monta
 			}
 			else
 			{
-				cout<<"n"<<net_number<<" "<<ptr->esquerda->tipo<<" GND"<<endl;
+				cout<<"n"<<net_number<<" "<<ptr->esquerda->tipo<<" GND"<<endl;									//2 transistores em serie ligados ao net no topo do stack
 				net_number++;
 				cout<<"n"<<net_number<<" "<<ptr->direita->tipo<<" n"<<net_number-1<<endl;
 				net_number++;
@@ -230,7 +230,7 @@ void faz_netlist(node *ptr, stack<int>& net_n)							// vai ate as folhas, monta
 				net_n.push(net_number-1);
 			}
 		}
-		if(ptr->tipo == '+')																				//
+		if(ptr->tipo == '+')																				//mesmo que AND, porém em paralelo
 		{
 			if(net_n.empty())
 			{
@@ -250,9 +250,9 @@ void faz_netlist(node *ptr, stack<int>& net_n)							// vai ate as folhas, monta
 		}
 	}
 	else
-		if(ptr->esquerda->tipo != '+' && ptr->esquerda->tipo != '*')
+		if(ptr->esquerda->tipo != '+' && ptr->esquerda->tipo != '*')									//quando tiver apenas um filho, conecta em paralelo ou serie de acordo com a op
 		{
-			if(ptr->tipo == '*')
+			if(ptr->tipo == '*')																		//olha para o stack para saber em quem conectar
 			{
 				cout<<"n"<<net_number<<" "<<ptr->esquerda->tipo<<" n"<<net_n.top()<<endl;
 				net_number++;
