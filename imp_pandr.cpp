@@ -14,11 +14,13 @@ typedef struct node{
 	
 }node;
 
+int net_number = 0; 									//guarda o menor numero disponivel para criar nova net
 void quebra_portas(string eq);
 void faz_postfix(stack<char> &postfix, string eq);
 void monta_arv(node *ptr, stack<char> &postfix);
 void printLevelOrder(node *root);
 void pinta_arv(node *root);
+void faz_netlist(node *ptr, stack<int> &net_n);
 void retorna_ordem(node *root, stack<char> &ordem);
 
 node raiz;
@@ -43,10 +45,11 @@ void quebra_portas(string eq)
 {									
 	stack<char> postfix;
 	stack<char> ordem;
+	stack<int> net_n;
 	faz_postfix(postfix, eq);
 	monta_arv(&raiz, postfix);
 	pinta_arv(&raiz);
-	printLevelOrder(&raiz);
+	//printLevelOrder(&raiz);
 	retorna_ordem(&raiz, ordem);
 	cout <<" ordem : ";
 	while(!ordem.empty())
@@ -55,6 +58,9 @@ void quebra_portas(string eq)
 		ordem.pop();
 	}
 	cout<<endl;
+	faz_netlist(&raiz, net_n);
+	cout<<"SAIDA: n"<< net_n.top()<<endl;
+	
 		return;
 }
 
@@ -186,6 +192,94 @@ void retorna_ordem(node *root, stack<char> &ordem) 	//se porta :coloca quebra no
 	{
 		ordem.push(root->tipo);
 	}
+	return;
+}
+
+void faz_netlist(node *ptr, stack<int>& net_n)							// vai ate as folhas, monta ligacoes com GND (implementando apenas pulldown por enquanto)
+{																		// conecta folhas, cria net e guarda no stack, olha stack antes de criar (para nao repetir nome)
+																		// em nao folhas, cria net se necessario (serie), utiliza nets do stack e tira do stack
+	if(ptr->esquerda->tipo == '+' || ptr->esquerda->tipo == '*')		// verifica se pode ir mais fundo na arvore
+	{
+		faz_netlist(ptr->esquerda, net_n);
+	}
+	if(ptr->direita->tipo == '+' || ptr->direita->tipo == '*')
+	{
+		if(ptr->tipo == '+')
+			net_n.pop();
+		faz_netlist(ptr->direita, net_n);
+	}
+	if(ptr->direita->tipo != '+' && ptr->direita->tipo != '*' && ptr->esquerda->tipo != '+' && ptr->esquerda->tipo != '*') //se nao poder ir mais fundo e ambos of filhos forem IN
+	{
+		if(ptr->tipo == '*')																					//se for AND, em serie (pulldown)
+		{
+			if(net_n.empty())																					//se o stack estiver fazio, crio apartir do n0, do contrario, cria do stack+1
+			{	
+				cout<<"n"<<net_number<<" "<<ptr->esquerda->tipo<<" GND"<<endl;
+				net_number++;
+				cout<<"n"<<net_number<<" "<<ptr->direita->tipo<<" n"<<net_number-1<<endl;
+				net_number++;
+				net_n.push(net_number-1);
+			}
+			else
+			{
+				cout<<"n"<<net_number<<" "<<ptr->esquerda->tipo<<" GND"<<endl;
+				net_number++;
+				cout<<"n"<<net_number<<" "<<ptr->direita->tipo<<" n"<<net_number-1<<endl;
+				net_number++;
+				net_n.pop();
+				net_n.push(net_number-1);
+			}
+		}
+		if(ptr->tipo == '+')																				//
+		{
+			if(net_n.empty())
+			{
+				cout<<"n"<<net_number<<" "<<ptr->esquerda->tipo<<" GND"<<endl;
+				cout<<"n"<<net_number<<" "<<ptr->direita->tipo<<" GND"<<endl;
+				net_number++;
+				net_n.push(net_number-1);
+			}
+			else
+			{
+				cout<<"n"<<net_number<<" "<<ptr->esquerda->tipo<<" n"<<net_n.top()<<endl;
+				cout<<"n"<<net_number<<" "<<ptr->direita->tipo<<" n"<<net_n.top()<<endl;
+				net_number++;
+				net_n.pop();
+				net_n.push(net_number-1);
+			}
+		}
+	}
+	else
+		if(ptr->esquerda->tipo != '+' && ptr->esquerda->tipo != '*')
+		{
+			if(ptr->tipo == '*')
+			{
+				cout<<"n"<<net_number<<" "<<ptr->esquerda->tipo<<" n"<<net_n.top()<<endl;
+				net_number++;
+				net_n.pop();
+				net_n.push(net_number-1);
+			}
+			if(ptr->tipo == '+')
+			{
+				cout<<"n"<<net_n.top()<<" "<<ptr->esquerda->tipo<<" GND"<<endl;
+			}
+		}
+		else
+			if(ptr->direita->tipo != '+' && ptr->direita->tipo != '*')
+			{
+				if(ptr->tipo == '*')
+				{
+					cout<<"n"<<net_number<<" "<<ptr->direita->tipo<<" n"<<net_n.top()<<endl;
+					net_number++;
+					net_n.pop();
+					net_n.push(net_number-1);
+				}
+				if(ptr->tipo == '+')
+				{
+					cout<<"n"<<net_n.top()<<" "<<ptr->direita->tipo<<" GND"<<endl;
+				}
+			}
+	
 	return;
 }
 
