@@ -14,7 +14,7 @@ typedef struct node{
 	
 }node;
 
-int net_number = 0; 									//guarda o menor numero disponivel para criar nova net
+int net_number = 1; 									//guarda o menor numero disponivel para criar nova net
 void quebra_portas(string eq);
 void faz_postfix(stack<char> &postfix, string eq);
 void monta_arv(node *ptr, stack<char> &postfix);
@@ -49,7 +49,7 @@ void quebra_portas(string eq)
 	faz_postfix(postfix, eq);
 	monta_arv(&raiz, postfix);
 	pinta_arv(&raiz);
-	//printLevelOrder(&raiz);
+	printLevelOrder(&raiz);
 	retorna_ordem(&raiz, ordem);
 	cout <<" ordem : ";
 	while(!ordem.empty())
@@ -198,15 +198,28 @@ void retorna_ordem(node *root, stack<char> &ordem) 	//se porta :coloca quebra no
 void faz_netlist(node *ptr, stack<int>& net_n)							// vai ate as folhas, monta ligacoes com GND (implementando apenas pulldown por enquanto)
 {																		// conecta folhas, cria net e guarda no stack, olha stack antes de criar (para nao repetir nome)
 																		// em nao folhas, cria net se necessario (serie), utiliza nets do stack e tira do stack
+	int topo_esq = 0;
+	int topo_dir = 0;
 	if(ptr->esquerda->tipo == '+' || ptr->esquerda->tipo == '*')		// verifica se pode ir mais fundo na arvore
 	{
 		faz_netlist(ptr->esquerda, net_n);
 	}
 	if(ptr->direita->tipo == '+' || ptr->direita->tipo == '*')
 	{
-		if(ptr->tipo == '+')											//ignora
-			net_n.pop();
-		faz_netlist(ptr->direita, net_n);
+		if(ptr->tipo == '+')											
+		{
+			
+			if(!net_n.empty())
+			{
+				topo_esq = net_n.top();
+				net_n.pop();
+			}
+				
+			faz_netlist(ptr->direita, net_n);
+			topo_dir = net_n.top();
+		}
+		else
+			faz_netlist(ptr->direita, net_n);
 	}
 	if(ptr->direita->tipo != '+' && ptr->direita->tipo != '*' && ptr->esquerda->tipo != '+' && ptr->esquerda->tipo != '*') //se nao poder ir mais fundo e ambos of filhos forem IN
 	{
@@ -278,6 +291,11 @@ void faz_netlist(node *ptr, stack<int>& net_n)							// vai ate as folhas, monta
 				{
 					cout<<"n"<<net_n.top()<<" "<<ptr->direita->tipo<<" GND"<<endl;
 				}
+			}
+		else																							//quando ambos os
+			{
+				if(ptr->tipo == '+' && topo_esq != 0)
+				cout<<"n"<<topo_esq<<" = n"<<topo_dir<<endl;
 			}
 	
 	return;
