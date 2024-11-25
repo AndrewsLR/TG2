@@ -1,0 +1,4 @@
+M1 n1 c GND GND nfet
+M2 n2 d n1 GND nfet
+M3 n2 b GND GND nfet
+M4 n3 a n2 GND nfet
