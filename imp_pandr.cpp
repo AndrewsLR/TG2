@@ -58,7 +58,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	stack<char> ordem;										//onde retornara a ordem das entradas + gaps(ordem contraria
 	stack<int> net_n;										//usado para conectar as nets durante a criacao do netlist, ao final tem o net de saida + o net a ser trocado pelo de saida
 	queue<int> fix;
-	stack<int> bott;										// para guardar a net de baixo quando houver nodo com 2 OP *
+	stack<int> bott;										// para guardar a net de baixo quando houver nodo com 2 OP * HAHAHAHA
 	list<transistor*> trans_list;							//todos os transistores criados
 	list<string> subs_list;									//lista de nomes de net a serem trocados
 	string eq = argv[1];
