@@ -4,7 +4,7 @@ import subprocess
 # File name containing the data
 input_file = "44-6.genlib"
 # Name of the executable
-executable = "imp_pandr.exe"
+executable = "./imp_pandr.out"
 
 def extract_boolean_expressions(file_path):
     """
@@ -34,15 +34,15 @@ def launch_executable(executable_path, arguments):
     """
     for arg in arguments:
         try:
-            # Properly format the argument with one set of quotes
-            formatted_arg = f'"{arg}"'
-            print(f"Launching {executable_path} with argument: {formatted_arg}")
-            subprocess.run([executable_path, formatted_arg], check=True)
+            # Just pass the argument directly without additional quotes
+            print(f"Launching {executable_path} with argument: {arg}")
+            subprocess.run([executable_path, arg], check=True)
             input("Press Enter to continue...")  # Wait for user input before proceeding
         except FileNotFoundError:
             print(f"Error: Executable {executable_path} not found.")
         except subprocess.CalledProcessError as e:
             print(f"Error: {e}")
+
 
 def main():
     # Ensure the executable exists
