@@ -35,6 +35,7 @@ typedef struct transistor{
 int net_number = 1; 																			//guarda o menor numero disponivel para criar nova net
 int trans_number = 1;																			//guarda o menor numero disponivel para criar transistor
 void quebra_portas(string eq);																	//chama faz_postfix e monta_arvore
+int precedencia(char op);
 void faz_postfix(stack<char> &postfix, string eq);												//faz postfix
 void monta_arv(node *ptr, stack<char> &postfix);												//monta a arvore
 void printLevelOrder(node *root);																//printa a arvore
@@ -99,65 +100,79 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	
 	return 0;
 }
-//(a*(b+c))
+
 void quebra_portas(string eq)		
 {									
 	stack<char> postfix;									//onde ficara a versao postfix da expressao
 	faz_postfix(postfix, eq);
 	monta_arv(&raiz, postfix);
 	
-	//cout<<"TRANSISTORES NA QUEUE"<<endl;
-	//while(!trans_list.empty())
-	//{
-	//	 cout<<trans_list.front()->tipo<<" "<<trans_list.front()->drain<<" "<<trans_list.front()->gate<<" "<<trans_list.front()->source<<endl;
-	//	trans_list.pop();
-	//}
-	//	cout<<trans_list.size()<<endl;
-		return;
+	return;
 }
 
 void faz_postfix(stack<char>& postfix, string eq)
 {
-	stack<char> op;
-	for(char& c : eq)											//Shunting yard algorithm
-	{
-		if (c != '(' && c != ')' && c != '+' && c != '*')
-		{
-			postfix.push(c);
-		}
-		else{
-			if( c != ')')
-				op.push(c);
-			else
-			{
-				while (op.top() != '(')
-				{
-					if( op.top() == '+' || op.top() == '*')
-					{
-						postfix.push(op.top());
-					}
-					op.pop();
-				}
-				op.pop();
-			}
-		}
-	}
-	if(!op.empty())
-	{
-		postfix.push(op.top());
-		op.pop();
-	}
+    stack<char> op;
+    
+    for(char& c : eq)
+    {
+        if (isalnum(c))
+        {
+            postfix.push(c);
+        }
+        else if (c == '(')
+        {
+            op.push(c);
+        }
+        else if (c == ')')
+        {
+            while (!op.empty() && op.top() != '(')
+            {
+                postfix.push(op.top());
+                op.pop();
+            }
+            op.pop();
+        }
+        else if (c == '+' || c == '*' || c == '-' || c == '/')
+        {
+
+            while (!op.empty() && op.top() != '(' && precedencia(op.top()) >= precedencia(c))
+            {
+                postfix.push(op.top());
+                op.pop();
+            }
+            op.push(c);
+        }
+    }
+
+    while (!op.empty())
+    {
+        if (op.top() != '(')
+            postfix.push(op.top());
+        op.pop();
+    }
+}
+
+
+int precedencia(char op)
+{
+	if(op == '*')
+		return 2;
+	if(op == '+')
+		return 1;
+	return 0;
 }
 
 void monta_arv(node *ptr, stack<char>& postfix)
 {
-	/*cout <<" postfix : ";
+	cout<<" postfix : ";
 	while(!postfix.empty())
 	{
 		 cout<< postfix.top()<<",";
 		postfix.pop();
 	}
-	cout<<endl;*/
+	cout<<endl;
+	return;
 	if(postfix.top() == '+' || postfix.top() == '*')
 	{
 		ptr->tipo = postfix.top();
