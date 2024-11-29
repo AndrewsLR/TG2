@@ -42,7 +42,7 @@ void pinta_arv(node *root);																		//pinta a arvore (faz algoritmo de 
 void retorna_ordem(node *root, stack<char> &ordem);												//
 
 
-void faz_netlist(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix);					//faz o netlist e coloca em uma lista
+void faz_netlist(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
 void concerta_e_escreve(string subs, stack<int> &net_n, list<transistor*> trans_list, list<string> subs_list);	//concerta a saida (remove net a mais criado quando expressão mas externa e +) e escreve em .spice
 
 node raiz;
@@ -58,6 +58,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	stack<char> ordem;										//onde retornara a ordem das entradas + gaps(ordem contraria
 	stack<int> net_n;										//usado para conectar as nets durante a criacao do netlist, ao final tem o net de saida + o net a ser trocado pelo de saida
 	queue<int> fix;
+	stack<int> bott;										// para guardar a net de baixo quando houver nodo com 2 OP * HAHAHAHA
 	list<transistor*> trans_list;							//todos os transistores criados
 	list<string> subs_list;									//lista de nomes de net a serem trocados
 	string eq = argv[1];
@@ -75,7 +76,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 		ordem.pop();
 	}
 	cout<<endl;
-	faz_netlist(&raiz, net_n, trans_list, fix);	
+	faz_netlist(&raiz, net_n, trans_list, fix, bott);	
 	
 	if(!fix.empty())
 	{
@@ -246,7 +247,7 @@ void retorna_ordem(node *root, stack<char> &ordem) 	//se porta :coloca quebra no
 	return;
 }
 
-void faz_netlist(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, queue<int> &fix)							// vai ate as folhas, monta ligacoes com GND (implementando apenas pulldown por enquanto)
+void faz_netlist(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott)							// vai ate as folhas, monta ligacoes com GND (implementando apenas pulldown por enquanto)
 {																		// conecta folhas, cria net e guarda no stack, olha stack antes de criar (para nao repetir nome)
 																		// em nao folhas, cria net se necessario (serie), utiliza nets do stack e tira do stack
 	int topo_esq = 0;
@@ -256,7 +257,7 @@ void faz_netlist(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, que
 	if(ptr->esquerda->tipo == '+' || ptr->esquerda->tipo == '*')		// verifica se pode ir mais fundo na arvore
 	{
 		
-		faz_netlist(ptr->esquerda, net_n, trans_list, fix);
+		faz_netlist(ptr->esquerda, net_n, trans_list, fix, bott);
 	}
 	if(ptr->direita->tipo == '+' || ptr->direita->tipo == '*')
 	{
@@ -270,9 +271,18 @@ void faz_netlist(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, que
 				net_n.pop();
 			}	
 		}
-			faz_netlist(ptr->direita, net_n, trans_list, fix);
+
+		if(ptr->tipo == '*' && (ptr->esquerda->tipo == '+' || ptr->esquerda->tipo == '*'))
+		{
+			bott.push((net_n.top()));
+		}
+			faz_netlist(ptr->direita, net_n, trans_list, fix, bott);
 			if(!net_n.empty())
-				topo_dir = net_n.top();		
+				topo_dir = net_n.top();
+			if(ptr->tipo == '*' && (ptr->esquerda->tipo == '+' || ptr->esquerda->tipo == '*'))
+			{
+				bott.pop();
+			}
 		
 	}
 	if(ptr->direita->tipo != '+' && ptr->direita->tipo != '*' && ptr->esquerda->tipo != '+' && ptr->esquerda->tipo != '*') //se nao poder ir mais fundo e ambos of filhos forem IN
@@ -308,7 +318,6 @@ void faz_netlist(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, que
 					trans_list.push_back(temp);
 					trans_number++;
 					net_number++;
-					net_n.pop();
 					net_n.push(net_number-1);
 			}
 		}
@@ -357,8 +366,16 @@ void faz_netlist(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, que
 			}
 			if(ptr->tipo == '+' && !net_n.empty())
 			{
-					cout<<"n"<<net_n.top()<<" "<<ptr->esquerda->tipo<<" GND"<<endl;
-					temp = new transistor('n', trans_number, "n"+to_string(net_n.top()), ptr->esquerda->tipo, "GND");
+					if(bott.empty())
+					{
+						cout<<"n"<<net_n.top()<<" "<<ptr->esquerda->tipo<<" GND"<<endl;
+						temp = new transistor('n', trans_number, "n"+to_string(net_n.top()), ptr->esquerda->tipo, "GND");
+					}
+					else
+					{
+						cout<<"n"<<net_n.top()<<" "<<ptr->esquerda->tipo<<" n"<<bott.top()<<endl;
+						temp = new transistor('n', trans_number, "n"+to_string(net_n.top()), ptr->esquerda->tipo, "n"+to_string(bott.top()));
+					}
 					trans_list.push_back(temp);
 					trans_number++;
 			}
@@ -378,8 +395,16 @@ void faz_netlist(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, que
 				}
 				if(ptr->tipo == '+' && !net_n.empty())
 				{
+					if(bott.empty())
+					{
 						cout<<"n"<<net_n.top()<<" "<<ptr->direita->tipo<<" GND"<<endl;
 						temp = new transistor('n', trans_number, "n"+to_string(net_n.top()), ptr->direita->tipo, "GND");
+					}
+					else
+					{
+						cout<<"n"<<net_n.top()<<" "<<ptr->direita->tipo<<" n"<<bott.top()<<endl;
+						temp = new transistor('n', trans_number, "n"+to_string(net_n.top()), ptr->direita->tipo, "n"+to_string(bott.top()));
+					}
 						trans_list.push_back(temp);
 						trans_number++;
 				}
