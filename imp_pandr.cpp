@@ -42,7 +42,8 @@ void retorna_ordem(node *root, stack<char> &ordem);												//
 void faz_netlist(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
 void faz_netlist_p(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
 
-void concerta_e_escreve(string subs, stack<int> &net_n, list<transistor*> trans_list, list<string> subs_list);	//concerta a saida (remove net a mais criado quando expressão mas externa e +) e escreve em .spice
+void concerta(string subs, list<transistor*> trans_list, list<string> subs_list);
+void escreve(list<transistor*> trans_list);	//concerta a saida (remove net a mais criado quando expressão mas externa e +) e escreve em .spice
 
 node raiz;
 
@@ -97,7 +98,6 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 			menor = fix.front();
 		}
 		subs_list.push_back("n"+to_string(fix.front()));
-		cout<<"CONTEUDO FINAL DO STACK"<<fix.front()<<endl;
 		if(saida == fix.front())
 			flag_saida = 1;
 		fix.pop();
@@ -116,12 +116,41 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 		exit(1);
 	}
 		
-	concerta_e_escreve(subs, net_n, trans_list, subs_list);
+	concerta(subs, trans_list, subs_list);
 
-	stack<int>empty;
-	swap(bott,empty);
+	stack<int>empty_stack;
+	queue<int>empty_list;
+	swap(bott,empty_stack);
+	swap(fix,empty_list);
 	faz_netlist_p(&raiz, net_p, trans_list, fix, bott);	
 
+	int saida_p = net_n.top();
+	cout<<"NET N TOP"<<net_p.top()<<endl;
+	
+	if(!fix.empty())
+	{
+		menor = fix.front();
+	}
+	
+	while(!fix.empty())
+	{
+		if(fix.front() <= menor)
+		{
+			menor = fix.front();
+		}
+		subs_list.push_back("n"+to_string(fix.front()));
+		if(saida_p == fix.front())
+			flag_saida = 1;
+		fix.pop();
+	}
+	
+	if(flag_saida == 1)
+		saida_p = menor;
+	cout<<"Net a substituir: n"<<menor<<endl;
+	subs = "n"+to_string(menor);
+	cout<<"SAIDA EM n"<<saida_p<<endl;
+	concerta(subs, trans_list, subs_list)
+	escreve(trans_list);
 
 
 	return 0;
@@ -612,10 +641,9 @@ void faz_netlist_p(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, q
 }
 
 
-void concerta_e_escreve(string subs, stack<int> &net_n, list<transistor*> trans_list, list<string> subs_list)
+void concerta(string subs, list<transistor*> trans_list, list<string> subs_list)
 {
-	ofstream file;
-	file.open("TESTE.spice", std::ios::app);
+	
 	list<transistor*>::iterator it = trans_list.begin();
 	list<string>::iterator it2 = subs_list.begin();
 	while(it != trans_list.end())
@@ -633,6 +661,18 @@ void concerta_e_escreve(string subs, stack<int> &net_n, list<transistor*> trans_
 			it2++;
 		}
 		it2 = subs_list.begin();
+		it++;
+	}
+	return;
+}
+
+void escreve(list<transistor*> trans_list)
+{
+	ofstream file;
+	file.open("TESTE.spice", std::ios::app);
+	list<transistor*>::iterator it = trans_list.begin();
+	while(it != trans_list.end())
+	{
 		if((*it)->tipo == 'n')
 		file<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<" " <<"GND "<<(*it)->tipo<<"fet"<<endl;
 		if((*it)->tipo == 'p')
