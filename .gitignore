@@ -2,3 +2,8 @@
 imp_pandr.exe
 TESTE.spice
 TESTE.spice
+*.out
+44-6.genlib
+TESTE.spice
+le_genlib.py
+*.spice
