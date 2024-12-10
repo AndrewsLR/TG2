@@ -124,14 +124,9 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	swap(fix,empty_list);
 	faz_netlist_p(&raiz, net_p, trans_list, fix, bott);	
 
-	int saida_p = net_n.top();
-	cout<<"NET N TOP"<<net_p.top()<<endl;
-	
-	if(!fix.empty())
-	{
-		menor = fix.front();
-	}
-	
+	int saida_p = net_p.top();
+	cout<<"NET P TOP: "<<saida_p<<endl;
+	menor=0;
 	while(!fix.empty())
 	{
 		if(fix.front() <= menor)
@@ -145,11 +140,22 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	}
 	
 	if(flag_saida == 1)
+	{
 		saida_p = menor;
+		cout<<"ativou flag"<<endl;
+
+	}
 	cout<<"Net a substituir: n"<<menor<<endl;
-	subs = "n"+to_string(menor);
-	cout<<"SAIDA EM n"<<saida_p<<endl;
-	concerta(subs, trans_list, subs_list)
+	if(menor != 0)
+	{
+		subs = "n"+to_string(menor);
+		cout<<"SAIDA EM do P é n"<<saida_p<<endl;
+		concerta(subs, trans_list, subs_list);
+	}
+	
+	subs = "n"+to_string(saida);
+	subs_list.push_back("n"+to_string(saida_p));
+	concerta(subs,trans_list, subs_list);
 	escreve(trans_list);
 
 
