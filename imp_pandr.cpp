@@ -15,6 +15,7 @@ void pinta_arv(node *root);
 typedef struct transistor{
 	char tipo;
 	int	num;
+	int pos = 0;
 	string drain;
 	char gate;
 	string source;
@@ -36,8 +37,8 @@ void faz_postfix(stack<char> &postfix, string eq);												//faz postfix
 void monta_arv(node *ptr, stack<char> &postfix);												//monta a arvore
 void printLevelOrder(node *root);																//printa a arvore
 void pinta_arv(node *root);																		//pinta a arvore (faz algoritmo de Uehara e Cleemput
-void retorna_ordem(node *root, stack<char> &ordem);												//
-
+void retorna_ordem(node *root, queue<char> &ordem);												//
+void place_transistores(list<transistor*> trans_list, queue<char> &ordem);						// faz o placement dos transistores (escreve posições nas transistor chains
 
 void faz_netlist(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
 void faz_netlist_p(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
@@ -55,7 +56,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 		exit(1);
 	}
 	
-	stack<char> ordem;										//onde retornara a ordem das entradas + gaps(ordem contraria
+	queue<char> ordem;										//onde retornara a ordem das entradas + gaps(ordem contraria
 	stack<int> net_n;
 	stack<int> net_p;										//usado para conectar as nets durante a criacao do netlist, ao final tem o net de saida + o net a ser trocado pelo de saida
 	queue<int> fix;
@@ -73,18 +74,13 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	pinta_arv(&raiz);
 	printLevelOrder(&raiz);
 	retorna_ordem(&raiz, ordem);
-	cout <<" ordem : ";
-	while(!ordem.empty())
-	{
-		 cout<< ordem.top()<<",";
-		ordem.pop();
-	}
+	
 	cout<<endl;
 	faz_netlist(&raiz, net_n, trans_list, fix, bott);	
 	int menor;
 	int flag_saida = 0;												//flag que avisa se e necessario substituir o net de saida
 	int saida = net_n.top();
-	cout<<"NET N TOP"<<net_n.top()<<endl;
+	//cout<<"NET N TOP"<<net_n.top()<<endl;
 	
 	if(!fix.empty())
 	{
@@ -106,7 +102,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	if(flag_saida == 1)
 		saida = menor;
 	flag_saida =0;
-	cout<<"Net a substituir: n"<<menor<<endl;
+	//cout<<"Net a substituir: n"<<menor<<endl;
 	subs = "n"+to_string(menor);
 	cout<<"SAIDA EM n"<<saida<<endl;
 	
@@ -125,7 +121,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	faz_netlist_p(&raiz, net_p, trans_list, fix, bott);	
 
 	int saida_p = net_p.top();
-	cout<<"NET P TOP: "<<saida_p<<endl;
+	//cout<<"NET P TOP: "<<saida_p<<endl;
 	menor=0;
 	while(!fix.empty())
 	{
@@ -145,7 +141,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 		cout<<"ativou flag"<<endl;
 
 	}
-	cout<<"Net a substituir: n"<<menor<<endl;
+	//cout<<"Net a substituir: n"<<menor<<endl;
 	if(menor != 0)
 	{
 		subs = "n"+to_string(menor);
@@ -157,7 +153,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	subs_list.push_back("n"+to_string(saida_p));
 	concerta(subs,trans_list, subs_list);
 	escreve(trans_list);
-
+	place_transistores(trans_list, ordem);
 
 	return 0;
 }
@@ -172,7 +168,7 @@ void quebra_portas(string eq)
 }
 
 
-void retorna_ordem(node *root, stack<char> &ordem) 	//se porta :coloca quebra no stack (tipo da porta) se iniciar em branco e navega filhos esquerda direita
+void retorna_ordem(node *root, queue<char> &ordem) 	//se porta :coloca quebra no stack (tipo da porta) se iniciar em branco e navega filhos esquerda direita
 {													//se in : coloca in no stack
 	if(root->tipo == '+' || root->tipo == '*')
 	{
@@ -193,6 +189,44 @@ void retorna_ordem(node *root, stack<char> &ordem) 	//se porta :coloca quebra no
 	{
 		ordem.push(root->tipo);
 	}
+	return;
+}
+
+void place_transistores(list<transistor*> trans_list, queue<char> &ordem)
+{
+	int pos = 1;
+	int gaps = 0;
+	while(ordem.front() == '+' || ordem.front() == '*')
+	{
+		ordem.pop();	
+	}
+	
+	while(!ordem.empty())
+	{
+		list<transistor*>::iterator it = trans_list.begin();
+		if(ordem.front() == '+' || ordem.front() == '*')
+		{
+			while(ordem.front() == '+' || ordem.front() == '*')
+				ordem.pop();
+			
+			gaps++;
+		}
+		else
+		{
+			while(it != trans_list.end())
+			{
+				if((*it)->gate == ordem.front())
+				{
+					(*it)->pos = pos;
+					cout<<"M"<<(*it)->num<<" de sinal de gate "<<(*it)->gate<<" e tipo "<<(*it)->tipo<<" na posição  "<<(*it)->pos<<endl;
+				}
+				it++;
+			}
+			ordem.pop();
+		}
+		pos++;	
+	}
+	cout<<"Número de gaps: "<<gaps<<endl;
 	return;
 }
 
@@ -226,7 +260,7 @@ void faz_netlist(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, que
 			if(!net_n.empty())
 			{
 				bott.push((net_n.top()));
-				cout<<"Topo do bott:"<<bott.top()<<endl;
+				//cout<<"Topo do bott:"<<bott.top()<<endl;
 			}
 		}
 			faz_netlist(ptr->direita, net_n, trans_list, fix, bott);
@@ -451,7 +485,7 @@ void faz_netlist_p(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, q
 			if(!net_n.empty())
 			{
 				bott.push((net_n.top()));
-				cout<<"Topo do bott:"<<bott.top()<<endl;
+				//cout<<"Topo do bott:"<<bott.top()<<endl;
 			}
 		}
 			faz_netlist_p(ptr->direita, net_n, trans_list, fix, bott);
