@@ -153,7 +153,14 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	subs_list.push_back("n"+to_string(saida_p));
 	concerta(subs,trans_list, subs_list);
 	escreve(trans_list);
-	place_transistores(trans_list, ordem);
+	cout<<"ORDEM ";
+	while(!ordem.empty())
+	{
+		cout<<ordem.front()<<", ";
+		ordem.pop();
+	}
+	cout<<endl;
+	//place_transistores(trans_list, ordem);
 
 	return 0;
 }
@@ -170,9 +177,10 @@ void quebra_portas(string eq)
 
 void retorna_ordem(node *root, queue<char> &ordem) 	//se porta :coloca quebra no stack (tipo da porta) se iniciar em branco e navega filhos esquerda direita
 {													//se in : coloca in no stack
+	cout<<"Porta : "<<root->tipo<<", "<<"Cor: "<<root->cor<<", ";
 	if(root->tipo == '+' || root->tipo == '*')
 	{
-		if(root->cor == 3 || root->cor == 1)
+		if(root->cor == 2 || root->cor == 3)
 		{
 			ordem.push(root->tipo);
 			retorna_ordem(root->esquerda, ordem);
@@ -198,7 +206,9 @@ void place_transistores(list<transistor*> trans_list, queue<char> &ordem)
 	int gaps = 0;
 	while(ordem.front() == '+' || ordem.front() == '*')
 	{
-		ordem.pop();	
+		cout<<"tirei "<<ordem.front()<<endl;
+		ordem.pop();
+		
 	}
 	
 	while(!ordem.empty())
@@ -207,7 +217,11 @@ void place_transistores(list<transistor*> trans_list, queue<char> &ordem)
 		if(ordem.front() == '+' || ordem.front() == '*')
 		{
 			while(ordem.front() == '+' || ordem.front() == '*')
+			{
+				cout<<"tirei "<<ordem.front()<<endl;	
 				ordem.pop();
+			}
+			
 			
 			gaps++;
 		}

@@ -6,7 +6,7 @@ using namespace std;
 typedef struct node{
 
     char tipo;
-    int cor = 4;					//0 = preto-entrada real, 1 = branco-pseudo entrada,2 = mistoP- preto no topo, 3 = mistoB - branco no topo, 4 = indefinido
+    int cor = 4;					//0 = preto-entrada real, 1 = mistoP- preto no topo, 2 = mistoB - branco no topo, 3 = branco-pseudo entrada, 4 = indefinido
     struct node* esquerda = nullptr;
     struct node* direita = nullptr;
 	
@@ -97,6 +97,7 @@ void monta_arv(node *ptr, stack<char>& postfix)
 
 void pinta_arv(node *root)
 {
+	//0 = preto-entrada real, 1 = mistoP- preto no topo, 2 = mistoB - branco no topo, 3 = branco-pseudo entrada, 4 = indefinido
 	//enquanto tiver filhos que sao operacoes, desce para aquele filho, se filhos forem ambos in, cria pseudo, pinta nodo, retorna
 	//ao retornar criar pseudo, verifica cor de filhos, roda algoritmo, se necessario flip, cascata flip para filhos mistos
 	// ao terminar percorre arvore da esquerda para a direita para obter ordem TALVEZ OUTRA FUNCAO
@@ -112,7 +113,7 @@ void pinta_arv(node *root)
 	}
 	else
 	{
-		root->cor = 3; //mistob = branco no topo
+		root->cor = 2; //mistob = branco no topo
 	}
 	if(root->esquerda->cor != 4 && root->direita->cor != 4)
 	{
@@ -120,13 +121,13 @@ void pinta_arv(node *root)
 		{
 			if(root->esquerda->cor == 0)
 			{
-				root->cor = 3; // mistob = branco no topo
+				root->cor = 2; // mistob = branco no topo
 			}
 			else
 			{
-				if(root->direita->cor == 3)
+				if(root->direita->cor == 2)
 				{
-					root->direita->cor = 2;
+					root->direita->cor = 1;
 				}
 				
 				root->cor = 1;
@@ -134,7 +135,18 @@ void pinta_arv(node *root)
 		}
 		else
 		{
-			root->cor = 3; //mistob = branco no topo
+			if(root->direita->cor > root->esquerda->cor) 	//troca de lugar baseado na prioridade do primeiro comentario da funcao
+				{
+					node *temp = root->esquerda;
+					root->esquerda = root->direita;
+					root->direita = temp;
+					root->cor = 2;
+				}
+			else
+			{
+				root->cor = 2;
+			}
+			
 		}
 	} 
 	return;
