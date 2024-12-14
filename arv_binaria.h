@@ -6,6 +6,7 @@ using namespace std;
 typedef struct node{
 
     char tipo;
+	char pai;
     int cor = 4;					//0 = preto-entrada real, 1 = mistoP- preto no topo, 2 = mistoB - branco no topo, 3 = branco-pseudo entrada, 4 = indefinido
     struct node* esquerda = nullptr;
     struct node* direita = nullptr;
@@ -80,8 +81,10 @@ void monta_arv(node *ptr, stack<char>& postfix)
 		ptr->tipo = postfix.top();
 		postfix.pop();
 		ptr->direita = new node;
+		ptr->direita->pai = ptr->tipo;
 		monta_arv(ptr->direita,postfix);
 		ptr->esquerda = new node;
+		ptr->esquerda->pai = ptr->tipo;
 		monta_arv(ptr->esquerda,postfix);
 		
 	}
@@ -97,10 +100,9 @@ void monta_arv(node *ptr, stack<char>& postfix)
 
 void pinta_arv(node *root)
 {
-	//0 = preto-entrada real, 1 = mistoP- preto no topo, 2 = mistoB - branco no topo, 3 = branco-pseudo entrada, 4 = indefinido
+	//0 = preto-entrada real, 1 = mistoP- preto no topo, 2 = mistoB - branco no topo, 3 = branco-pseudo entrada, 4 = indefinido Prioridade pra quem deve ser filho da esquerda
 	//enquanto tiver filhos que sao operacoes, desce para aquele filho, se filhos forem ambos in, cria pseudo, pinta nodo, retorna
-	//ao retornar criar pseudo, verifica cor de filhos, roda algoritmo, se necessario flip, cascata flip para filhos mistos
-	// ao terminar percorre arvore da esquerda para a direita para obter ordem TALVEZ OUTRA FUNCAO
+	//ao retornar criar pseudo, verifica cor de filhos, roda algoritmo, se necessario faz flip em filho
 	// na realidade sempre existe um pseudo, apenas compara cores dos filhos e decide cor, mudar cor caso necessario (flip)
 	if(root->direita->tipo == '*' || root->direita->tipo == '+')
 	{
@@ -111,26 +113,27 @@ void pinta_arv(node *root)
 	{
 		pinta_arv(root->esquerda);
 	}
+	// vai ate o fundo da arvore
 	else
 	{
 		root->cor = 2; //mistob = branco no topo
 	}
 	if(root->esquerda->cor != 4 && root->direita->cor != 4)
 	{
-		if(root->esquerda->cor == root->direita->cor)
+		if(root->esquerda->cor == root->direita->cor)	//se as cores do filhos forem iguais
 		{
-			if(root->esquerda->cor == 0)
+			if(root->esquerda->cor == 0)				//se pretos, se torna misto com branco primeiro
 			{
-				root->cor = 2; // mistob = branco no topo
+				root->cor = 2;
 			}
 			else
 			{
-				if(root->direita->cor == 2)
+				if(root->direita->cor == 2)				//se forem mistos, faz flip do da direita e se torna branco
 				{
 					root->direita->cor = 1;
 				}
 				
-				root->cor = 1;
+				root->cor = 3;
 			}
 		}
 		else
@@ -140,7 +143,7 @@ void pinta_arv(node *root)
 					node *temp = root->esquerda;
 					root->esquerda = root->direita;
 					root->direita = temp;
-					root->cor = 2;
+					root->cor = 2;							//se torna misto com branco primeiro
 				}
 			else
 			{

@@ -154,13 +154,13 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	concerta(subs,trans_list, subs_list);
 	escreve(trans_list);
 	cout<<"ORDEM ";
-	while(!ordem.empty())
-	{
-		cout<<ordem.front()<<", ";
-		ordem.pop();
-	}
+	//while(!ordem.empty())
+	//{
+	//	cout<<ordem.front()<<", ";
+	//	ordem.pop();
+	//}
 	cout<<endl;
-	//place_transistores(trans_list, ordem);
+	place_transistores(trans_list, ordem);
 
 	return 0;
 }
@@ -177,20 +177,38 @@ void quebra_portas(string eq)
 
 void retorna_ordem(node *root, queue<char> &ordem) 	//se porta :coloca quebra no stack (tipo da porta) se iniciar em branco e navega filhos esquerda direita
 {													//se in : coloca in no stack
-	cout<<"Porta : "<<root->tipo<<", "<<"Cor: "<<root->cor<<", ";
+	//cout<<"Porta : "<<root->tipo<<", "<<"Cor: "<<root->cor<<", ";
 	if(root->tipo == '+' || root->tipo == '*')
 	{
-		if(root->cor == 2 || root->cor == 3)
+		if(root->pai != 0)
 		{
-			ordem.push(root->tipo);
-			retorna_ordem(root->esquerda, ordem);
-			retorna_ordem(root->direita, ordem);
+			if(root->cor == 2 || root->cor == 3)
+			{
+				ordem.push(root->pai);
+				retorna_ordem(root->esquerda, ordem);
+				retorna_ordem(root->direita, ordem);
+			}
+			else
+			{
+				retorna_ordem(root->direita, ordem);
+				retorna_ordem(root->esquerda, ordem);
+				ordem.push(root->pai);
+			}
 		}
 		else
 		{
-			retorna_ordem(root->direita, ordem);
-			retorna_ordem(root->esquerda, ordem);
-			ordem.push(root->tipo);
+			if(root->cor == 2 || root->cor == 3)
+			{
+				ordem.push(root->tipo);
+				retorna_ordem(root->esquerda, ordem);
+				retorna_ordem(root->direita, ordem);
+			}
+			else
+			{
+				retorna_ordem(root->direita, ordem);
+				retorna_ordem(root->esquerda, ordem);
+				ordem.push(root->tipo);
+			}
 		}
 	}
 	else
@@ -202,8 +220,10 @@ void retorna_ordem(node *root, queue<char> &ordem) 	//se porta :coloca quebra no
 
 void place_transistores(list<transistor*> trans_list, queue<char> &ordem)
 {
-	int pos = 1;
-	int gaps = 0;
+	int pos_n = 1;
+	int pos_p = 1;
+	int gaps_n = 0;
+	int gaps_p = 0;
 	while(ordem.front() == '+' || ordem.front() == '*')
 	{
 		cout<<"tirei "<<ordem.front()<<endl;
@@ -214,33 +234,49 @@ void place_transistores(list<transistor*> trans_list, queue<char> &ordem)
 	while(!ordem.empty())
 	{
 		list<transistor*>::iterator it = trans_list.begin();
-		if(ordem.front() == '+' || ordem.front() == '*')
+		if(ordem.front() == '+')
 		{
-			while(ordem.front() == '+' || ordem.front() == '*')
+			while(ordem.front() == '+')
 			{
 				cout<<"tirei "<<ordem.front()<<endl;	
 				ordem.pop();
 			}
-			
-			
-			gaps++;
+			pos_p++;
+			gaps_p++;
 		}
+		else
+			if(ordem.front() == '*')
+			{
+				while(ordem.front() == '*')
+				{
+					cout<<"tirei "<<ordem.front()<<endl;	
+					ordem.pop();
+				}
+			
+			pos_n++;
+			gaps_n++;
+			}
 		else
 		{
 			while(it != trans_list.end())
 			{
 				if((*it)->gate == ordem.front())
 				{
-					(*it)->pos = pos;
+					if((*it)->tipo == 'n')
+						(*it)->pos = pos_n;
+					else
+						(*it)->pos = pos_p;
 					cout<<"M"<<(*it)->num<<" de sinal de gate "<<(*it)->gate<<" e tipo "<<(*it)->tipo<<" na posição  "<<(*it)->pos<<endl;
 				}
 				it++;
 			}
 			ordem.pop();
-		}
-		pos++;	
+			pos_n++;
+			pos_p++;
+		}	
 	}
-	cout<<"Número de gaps: "<<gaps<<endl;
+	cout<<"Número de gaps em N: "<<gaps_n<<endl;
+	cout<<"Número de gaps em P: "<<gaps_p<<endl;
 	return;
 }
 
@@ -519,8 +555,8 @@ void faz_netlist_p(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, q
 			cout<<"CAIU AQUI"<<endl;
 			if(net_n.empty() && bott.empty())																					//olha na variavel global net_number numero disponivel quando necessario criar net
 			{	
-					cout<<"n"<<net_number<<" "<<ptr->esquerda->tipo<<" GND"<<endl;									//coloca 2 transistores em serie ligado ao GND (stack vazio)
-					temp = new transistor('p', trans_number, "n"+to_string(net_number), ptr->esquerda->tipo, "GND");
+					cout<<"n"<<net_number<<" "<<ptr->esquerda->tipo<<" VDD"<<endl;									//coloca 2 transistores em serie ligado ao GND (stack vazio)
+					temp = new transistor('p', trans_number, "n"+to_string(net_number), ptr->esquerda->tipo, "VDD");
 					trans_list.push_back(temp);
 					trans_number++;
 					net_number++;
@@ -570,12 +606,12 @@ void faz_netlist_p(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, q
 		{
 			if(net_n.empty() && bott.empty())
 			{
-					cout<<"n"<<net_number<<" "<<ptr->esquerda->tipo<<" GND"<<endl;
-					temp = new transistor('p', trans_number, "n"+to_string(net_number), ptr->esquerda->tipo, "GND");
+					cout<<"n"<<net_number<<" "<<ptr->esquerda->tipo<<" VDD"<<endl;
+					temp = new transistor('p', trans_number, "n"+to_string(net_number), ptr->esquerda->tipo, "VDD");
 					trans_list.push_back(temp);
 					trans_number++;
-					cout<<"n"<<net_number<<" "<<ptr->direita->tipo<<" GND"<<endl;
-					temp = new transistor('p', trans_number, "n"+to_string(net_number), ptr->direita->tipo, "GND");
+					cout<<"n"<<net_number<<" "<<ptr->direita->tipo<<" VDD"<<endl;
+					temp = new transistor('p', trans_number, "n"+to_string(net_number), ptr->direita->tipo, "VDD");
 					trans_list.push_back(temp);
 					trans_number++;
 					net_number++;
@@ -630,8 +666,8 @@ void faz_netlist_p(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, q
 			{
 					if(bott.empty())
 					{
-						cout<<"n"<<net_n.top()<<" "<<ptr->esquerda->tipo<<" GND"<<endl;
-						temp = new transistor('p', trans_number, "n"+to_string(net_n.top()), ptr->esquerda->tipo, "GND");
+						cout<<"n"<<net_n.top()<<" "<<ptr->esquerda->tipo<<" VDD"<<endl;
+						temp = new transistor('p', trans_number, "n"+to_string(net_n.top()), ptr->esquerda->tipo, "VDD");
 					}
 					else
 					{
@@ -659,8 +695,8 @@ void faz_netlist_p(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, q
 				{
 					if(bott.empty())
 					{
-						cout<<"n"<<net_n.top()<<" "<<ptr->direita->tipo<<" GND"<<endl;
-						temp = new transistor('p', trans_number, "n"+to_string(net_n.top()), ptr->direita->tipo, "GND");
+						cout<<"n"<<net_n.top()<<" "<<ptr->direita->tipo<<" VDD"<<endl;
+						temp = new transistor('p', trans_number, "n"+to_string(net_n.top()), ptr->direita->tipo, "VDD");
 					}
 					else
 					{
@@ -730,7 +766,7 @@ void escreve(list<transistor*> trans_list)
 		if((*it)->tipo == 'n')
 		file<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<" " <<"GND "<<(*it)->tipo<<"fet"<<endl;
 		if((*it)->tipo == 'p')
-		file<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<" " <<"GND "<<(*it)->tipo<<"fet"<<endl;
+		file<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<" " <<"VDD "<<(*it)->tipo<<"fet"<<endl;
 		it++;
 	}
 	file.close();
