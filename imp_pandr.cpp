@@ -28,6 +28,20 @@ typedef struct transistor{
 		source = source_;
 	}
 }transistor;
+
+typedef struct net{
+	string nome;
+	int inicio;
+	int fim;
+	int linha;
+	net(string nome_, int inicio_, int fim_, int linha_)
+	{
+		nome = nome_;
+		inicio = inicio_;
+		fim = fim_;
+		linha = linha_;
+	}
+}net;
 	
 int net_number = 1; 																			//guarda o menor numero disponivel para criar nova net
 int trans_number = 1;																			//guarda o menor numero disponivel para criar transistor
@@ -37,14 +51,14 @@ void faz_postfix(stack<char> &postfix, string eq);												//faz postfix
 void monta_arv(node *ptr, stack<char> &postfix);												//monta a arvore
 void printLevelOrder(node *root);																//printa a arvore
 void pinta_arv(node *root);																		//pinta a arvore (faz algoritmo de Uehara e Cleemput
-void retorna_ordem(node *root, queue<char> &ordem);												//
-void place_transistores(list<transistor*> trans_list, queue<char> &ordem);						// faz o placement dos transistores (escreve posições nas transistor chains
+void retorna_ordem(node *root, queue<char> &ordem);												
 
 void faz_netlist(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
 void faz_netlist_p(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
-
 void concerta(string subs, list<transistor*> trans_list, list<string> subs_list);
 void escreve(list<transistor*> trans_list);	//concerta a saida (remove net a mais criado quando expressão mas externa e +) e escreve em .spice
+int place_transistores(list<transistor*> trans_list, queue<char> &ordem);						// faz o placement dos transistores (escreve posições nas transistor chains
+void left_edge(list<transistor*> trans_list, int largura, queue<net> &nets);				//
 
 node raiz;
 
@@ -160,8 +174,16 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	//	ordem.pop();
 	//}
 	cout<<endl;
-	place_transistores(trans_list, ordem);
-
+	int largura = place_transistores(trans_list, ordem);
+	cout<<"Celula de largura : "<< largura<<endl;
+	queue<net> nets;
+	left_edge(trans_list, largura, nets);
+	
+	while(!nets.empty())
+	{
+		cout<<"NET "<<nets.front().nome<< " "<<nets.front().inicio<<"-"<<nets.front().fim<<" linha "<<nets.front().linha<<endl;
+		nets.pop();
+	}
 	return 0;
 }
 
@@ -218,67 +240,6 @@ void retorna_ordem(node *root, queue<char> &ordem) 	//se porta :coloca quebra no
 	return;
 }
 
-void place_transistores(list<transistor*> trans_list, queue<char> &ordem)
-{
-	int pos_n = 1;
-	int pos_p = 1;
-	int gaps_n = 0;
-	int gaps_p = 0;
-	while(ordem.front() == '+' || ordem.front() == '*')
-	{
-		cout<<"tirei "<<ordem.front()<<endl;
-		ordem.pop();
-		
-	}
-	
-	while(!ordem.empty())
-	{
-		list<transistor*>::iterator it = trans_list.begin();
-		if(ordem.front() == '+')
-		{
-			while(ordem.front() == '+')
-			{
-				cout<<"tirei "<<ordem.front()<<endl;	
-				ordem.pop();
-			}
-			pos_p++;
-			gaps_p++;
-		}
-		else
-			if(ordem.front() == '*')
-			{
-				while(ordem.front() == '*')
-				{
-					cout<<"tirei "<<ordem.front()<<endl;	
-					ordem.pop();
-				}
-			
-			pos_n++;
-			gaps_n++;
-			}
-		else
-		{
-			while(it != trans_list.end())
-			{
-				if((*it)->gate == ordem.front())
-				{
-					if((*it)->tipo == 'n')
-						(*it)->pos = pos_n;
-					else
-						(*it)->pos = pos_p;
-					cout<<"M"<<(*it)->num<<" de sinal de gate "<<(*it)->gate<<" e tipo "<<(*it)->tipo<<" na posição  "<<(*it)->pos<<endl;
-				}
-				it++;
-			}
-			ordem.pop();
-			pos_n++;
-			pos_p++;
-		}	
-	}
-	cout<<"Número de gaps em N: "<<gaps_n<<endl;
-	cout<<"Número de gaps em P: "<<gaps_p<<endl;
-	return;
-}
 
 void faz_netlist(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott)							// vai ate as folhas, monta ligacoes com GND (implementando apenas pulldown por enquanto)
 {																		// conecta folhas, cria net e guarda no stack, olha stack antes de criar (para nao repetir nome)
@@ -772,6 +733,125 @@ void escreve(list<transistor*> trans_list)
 	file.close();
 	return;
 }
+
+int place_transistores(list<transistor*> trans_list, queue<char> &ordem)
+{
+	int pos_n = 1;
+	int pos_p = 1;
+	int gaps_n = 0;
+	int gaps_p = 0;
+	while(ordem.front() == '+' || ordem.front() == '*')
+	{
+		cout<<"tirei "<<ordem.front()<<endl;
+		ordem.pop();
+		
+	}
+	
+	while(!ordem.empty())
+	{
+		list<transistor*>::iterator it = trans_list.begin();
+		if(ordem.front() == '+')
+		{
+			while(ordem.front() == '+')
+			{
+				cout<<"tirei "<<ordem.front()<<endl;	
+				ordem.pop();
+			}
+			pos_p++;
+			gaps_p++;
+		}
+		else
+			if(ordem.front() == '*')
+			{
+				while(ordem.front() == '*')
+				{
+					cout<<"tirei "<<ordem.front()<<endl;	
+					ordem.pop();
+				}
+			
+			pos_n++;
+			gaps_n++;
+			}
+		else
+		{
+			while(it != trans_list.end())
+			{
+				if((*it)->gate == ordem.front())
+				{
+					if((*it)->tipo == 'n')
+						(*it)->pos = pos_n;
+					else
+						(*it)->pos = pos_p;
+					cout<<"M"<<(*it)->num<<" de sinal de gate "<<(*it)->gate<<" e tipo "<<(*it)->tipo<<" na posição  "<<(*it)->pos<<endl;
+				}
+				it++;
+			}
+			ordem.pop();
+			pos_n+=2;										// adiciona 2 posicoes, uma para o drain e uma para o source
+			pos_p+=2;
+		}	
+	}
+	cout<<"Número de gaps em N: "<<gaps_n<<endl;
+	cout<<"Número de gaps em P: "<<gaps_p<<endl;
+	
+	return (max(pos_n,pos_p) - 1);
+}
+
+void left_edge(list<transistor*> trans_list, int largura, queue<net> &nets)
+{
+	int livre = 1;
+	int linha = 1;
+	net *temp;
+	list<transistor*>::iterator it;
+	for(int i = 0; i < net_number; i++)
+	{
+		int min = 9999;
+		int max = 0;
+		it = trans_list.begin();
+		
+		while(it != trans_list.end())
+		{
+			if((*it)->drain == "n"+to_string(i))											//se encontrar a net
+			{
+				if((*it)->pos < min)
+					min = (*it)->pos;
+				if((*it)->pos > max)
+					max = (*it)->pos;
+			}
+			
+			if((*it)->source == "n"+to_string(i))											//se encontrar a net
+			{
+				if((*it)->pos+1 < min)
+					min = (*it)->pos+1;
+				if((*it)->pos+1 > max)
+					max = (*it)->pos+1;
+			}
+			it++;
+		}
+		
+		if(min != 9999 && max != 0)
+		{
+			if(livre <= min)
+			{
+				temp = new net("n"+to_string(i), min, max, linha);
+				nets.push(*temp);
+				livre = max+1;
+			}
+			else
+			{
+				linha++;
+				temp = new net("n"+to_string(i), min, max, linha);
+				nets.push(*temp);
+				livre = max+1;
+			}
+		}
+		
+	}
+	
+	
+	return;
+}
+
 
 void printLevelOrder(node *root) {		//da internet : https://www.geeksforgeeks.org/how-to-print-data-in-binary-tree-level-by-level-in-cpp/
         if (root == nullptr) return;  
