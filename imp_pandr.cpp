@@ -166,8 +166,8 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	subs = "n"+to_string(saida);
 	subs_list.push_back("n"+to_string(saida_p));
 	concerta(subs,trans_list, subs_list);
-	escreve(trans_list);
-	cout<<"ORDEM ";
+	//escreve(trans_list);
+	//cout<<"ORDEM ";
 	//while(!ordem.empty())
 	//{
 	//	cout<<ordem.front()<<", ";
@@ -739,6 +739,7 @@ int place_transistores(list<transistor*> trans_list, queue<char> &ordem)
 	int pos_p = 1;
 	int gaps_n = 0;
 	int gaps_p = 0;
+	list<transistor*> nova_list;
 	list<transistor*>::iterator ant_n = trans_list.begin();
 	list<transistor*>::iterator ant_p = trans_list.begin();
 	while(ordem.front() == '+' || ordem.front() == '*')
@@ -778,7 +779,7 @@ int place_transistores(list<transistor*> trans_list, queue<char> &ordem)
 			{
 				if((*it)->gate == ordem.front())
 				{
-					cout << "ANTERIOR N: "<< (*ant_n)->gate<<" ANTERIOR P: "<< (*ant_p)->gate<<" ATUAL : "<< (*it)->gate<<endl;
+					//cout << "ANTERIOR N: "<< (*ant_n)->gate<<" ANTERIOR P: "<< (*ant_p)->gate<<" ATUAL : "<< (*it)->gate<<endl;
 					if((*it)->tipo == 'n')
 					{
 						if((it != ant_n))				
@@ -824,7 +825,7 @@ int place_transistores(list<transistor*> trans_list, queue<char> &ordem)
 							}
 						}
 						//cout<<"M"<<(*it)->num<<" de sinal de gate "<<(*it)->gate<<" e tipo "<<(*it)->tipo<<" na posição  "<<(*it)->pos<<endl;
-					
+					nova_list.push_back(*it);
 
 				}
 			
@@ -838,6 +839,7 @@ int place_transistores(list<transistor*> trans_list, queue<char> &ordem)
 	cout<<"Número de gaps em N: "<<gaps_n<<endl;
 	cout<<"Número de gaps em P: "<<gaps_p<<endl;
 	
+	swap(trans_list,nova_list);
 	return (max(pos_n,pos_p) - 1);
 }
 
