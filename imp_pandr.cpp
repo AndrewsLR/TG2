@@ -173,12 +173,12 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	//	cout<<ordem.front()<<", ";
 	//	ordem.pop();
 	//}
-	cout<<endl;
+	//cout<<endl;
 	int largura = place_transistores(trans_list, ordem);
 	cout<<"Celula de largura : "<< largura<<endl;
 	queue<net> nets;
 	left_edge(trans_list, largura, nets);
-	
+	escreve(trans_list);
 	while(!nets.empty())
 	{
 		cout<<"NET "<<nets.front().nome<< " "<<nets.front().inicio<<"-"<<nets.front().fim<<" linha "<<nets.front().linha<<endl;
@@ -206,7 +206,7 @@ void retorna_ordem(node *root, queue<char> &ordem) 	//se porta :coloca quebra no
 		{
 			if(root->cor == 2 || root->cor == 3)
 			{
-				ordem.push(root->pai);
+				ordem.push(root->tipo);
 				retorna_ordem(root->esquerda, ordem);
 				retorna_ordem(root->direita, ordem);
 			}
@@ -214,7 +214,7 @@ void retorna_ordem(node *root, queue<char> &ordem) 	//se porta :coloca quebra no
 			{
 				retorna_ordem(root->direita, ordem);
 				retorna_ordem(root->esquerda, ordem);
-				ordem.push(root->pai);
+				ordem.push(root->tipo);
 			}
 		}
 		else
@@ -250,7 +250,6 @@ void faz_netlist(node *ptr, stack<int>& net_n,list<transistor*> &trans_list, que
 	
 	if(ptr->esquerda->tipo == '+' || ptr->esquerda->tipo == '*')		// verifica se pode ir mais fundo na arvore
 	{
-		
 		faz_netlist(ptr->esquerda, net_n, trans_list, fix, bott);
 	}
 	if(ptr->direita->tipo == '+' || ptr->direita->tipo == '*')
@@ -740,9 +739,11 @@ int place_transistores(list<transistor*> trans_list, queue<char> &ordem)
 	int pos_p = 1;
 	int gaps_n = 0;
 	int gaps_p = 0;
+	list<transistor*>::iterator ant_n = trans_list.begin();
+	list<transistor*>::iterator ant_p = trans_list.begin();
 	while(ordem.front() == '+' || ordem.front() == '*')
 	{
-		cout<<"tirei "<<ordem.front()<<endl;
+		//cout<<"tirei "<<ordem.front()<<endl;
 		ordem.pop();
 		
 	}
@@ -750,28 +751,26 @@ int place_transistores(list<transistor*> trans_list, queue<char> &ordem)
 	while(!ordem.empty())
 	{
 		list<transistor*>::iterator it = trans_list.begin();
-		list<transistor*>::iterator it2 = trans_list.begin();
 		if(ordem.front() == '+')
 		{
 			while(ordem.front() == '+')
 			{
-				cout<<"tirei "<<ordem.front()<<endl;	
+				//cout<<"tirei "<<ordem.front()<<endl;	
 				ordem.pop();
 			}
-			pos_p++;
-			gaps_p++;
+			pos_n++;
+			gaps_n++;
 		}
 		else
 			if(ordem.front() == '*')
 			{
 				while(ordem.front() == '*')
 				{
-					cout<<"tirei "<<ordem.front()<<endl;	
+					//cout<<"tirei "<<ordem.front()<<endl;	
 					ordem.pop();
 				}
-			
-			pos_n++;
-			gaps_n++;
+				pos_p++;
+				gaps_p++;
 			}
 		else
 		{
@@ -779,21 +778,56 @@ int place_transistores(list<transistor*> trans_list, queue<char> &ordem)
 			{
 				if((*it)->gate == ordem.front())
 				{
-					if((it != it2) && ((*it)->drain == (*it2)->drain || (*it)->source == (*it2)->source))				// se o drain ou source forem iguais, faz flip
+					cout << "ANTERIOR N: "<< (*ant_n)->gate<<" ANTERIOR P: "<< (*ant_p)->gate<<" ATUAL : "<< (*it)->gate<<endl;
+					if((*it)->tipo == 'n')
 					{
-						string temp = (*it)->drain;
-						(*it)->drain = (*it)->source;
-						(*it)->source = temp;
+						if((it != ant_n))				
+						{
+							if(((*it)->drain == (*ant_n)->drain || (*it)->source == (*ant_n)->source))
+							{
+								string temp = (*it)->drain;
+								(*it)->drain = (*it)->source;
+								(*it)->source = temp;
+							}
+							
+						}
+						
+					}
+					else
+					{
+							if((it != ant_p))				
+						{
+							if((*it)->drain == (*ant_p)->drain || (*it)->source == (*ant_p)->source)
+							{
+								string temp = (*it)->drain;
+								(*it)->drain = (*it)->source;
+								(*it)->source = temp;
+							}
+							
+						}
 					}
 
 						if((*it)->tipo == 'n')
-						(*it)->pos = pos_n;
+						{
+							(*it)->pos = pos_n;
+							if(ant_n != it && (*it)->tipo == 'n')
+							{
+								ant_n = it;
+							}
+						}
 						else
-						(*it)->pos = pos_p;
-						cout<<"M"<<(*it)->num<<" de sinal de gate "<<(*it)->gate<<" e tipo "<<(*it)->tipo<<" na posição  "<<(*it)->pos<<endl;
+						{
+							(*it)->pos = pos_p;
+							if(ant_p != it && (*it)->tipo == 'p')
+							{
+								ant_p = it;
+							}
+						}
+						//cout<<"M"<<(*it)->num<<" de sinal de gate "<<(*it)->gate<<" e tipo "<<(*it)->tipo<<" na posição  "<<(*it)->pos<<endl;
 					
+
 				}
-				it2 = it;
+			
 				it++;
 			}
 			ordem.pop();
