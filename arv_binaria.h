@@ -13,6 +13,15 @@ typedef struct node{
 	
 }node;
 
+typedef struct q_node{
+
+    char tipo;				
+    struct node* filho1 = nullptr;
+    struct node* filho2 = nullptr;
+	struct node* filho3 = nullptr;
+    struct node* filho4 = nullptr;
+}q_node;
+
 int precedencia(char op)
 {
 	if(op == '*')
@@ -154,3 +163,27 @@ void pinta_arv(node *root)
 	} 
 	return;
 }
+
+/*void converte(node* root, q_node *new_root)
+//desce ate as folhas, volta fundindo em nova arvore
+{
+	q_node *temp;
+	if(root->esquerda == '+' || '*')
+	{
+		converte(root->esquerda);
+	}
+	if(root->tipo == new_root->tipo)
+	{
+		
+
+	}
+	else
+	{
+		temp = new q_node;
+	}
+	if(root->direita == '+' || '*')
+	{
+		converte(root->direita);
+	}
+
+}*/

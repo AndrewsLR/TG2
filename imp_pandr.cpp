@@ -27,6 +27,15 @@ typedef struct transistor{
 		gate = gate_;
 		source = source_;
 	}
+	transistor(char tipo_, int num_, string drain_, char gate_, string source_, int pos_)
+	{
+		tipo = tipo_;
+		num = num_;
+		drain = drain_;
+		gate = gate_;
+		source = source_;
+		pos = pos_;
+	}
 }transistor;
 
 typedef struct net{
@@ -57,7 +66,7 @@ void faz_netlist(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, qu
 void faz_netlist_p(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
 void concerta(string subs, list<transistor*> trans_list, list<string> subs_list);
 void escreve(list<transistor*> trans_list);	//concerta a saida (remove net a mais criado quando expressão mas externa e +) e escreve em .spice
-int place_transistores(list<transistor*> trans_list, queue<char> &ordem);						// faz o placement dos transistores (escreve posições nas transistor chains
+int place_transistores(list<transistor*> trans_list, queue<char> &ordem, list<transistor*> &nova_list, string eq);						// faz o placement dos transistores (escreve posições nas transistor chains
 void left_edge(list<transistor*> trans_list, int largura, queue<net> &nets);				//
 
 node raiz;
@@ -80,7 +89,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	string eq = argv[1];
 	cout <<"A equação é: "<< eq <<endl;
 	ofstream file;
-	file.open("TESTE.spice", std::ios::app);
+	file.open("Netlists.spice", std::ios::app);
 	file<<"A equação é :" << eq<<endl;
 	file.close();
 	quebra_portas(eq);
@@ -174,16 +183,20 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	//	ordem.pop();
 	//}
 	//cout<<endl;
-	int largura = place_transistores(trans_list, ordem);
+	list<transistor*> nova_list;
+	int largura = place_transistores(trans_list, ordem, nova_list, eq);
 	cout<<"Celula de largura : "<< largura<<endl;
 	queue<net> nets;
-	left_edge(trans_list, largura, nets);
-	escreve(trans_list);
+	left_edge(nova_list, largura, nets);
+	escreve(nova_list);
+	file.open("linhas_e_gaps.txt", std::ios::app);
+	
 	while(!nets.empty())
 	{
-		cout<<"NET "<<nets.front().nome<< " "<<nets.front().inicio<<"-"<<nets.front().fim<<" linha "<<nets.front().linha<<endl;
+		file<<"NET "<<nets.front().nome<< " "<<nets.front().inicio<<"-"<<nets.front().fim<<" linha "<<nets.front().linha<<endl;
 		nets.pop();
 	}
+	file.close();
 	return 0;
 }
 
@@ -719,7 +732,7 @@ void concerta(string subs, list<transistor*> trans_list, list<string> subs_list)
 void escreve(list<transistor*> trans_list)
 {
 	ofstream file;
-	file.open("TESTE.spice", std::ios::app);
+	file.open("Netlists.spice", std::ios::app);
 	list<transistor*>::iterator it = trans_list.begin();
 	while(it != trans_list.end())
 	{
@@ -733,13 +746,14 @@ void escreve(list<transistor*> trans_list)
 	return;
 }
 
-int place_transistores(list<transistor*> trans_list, queue<char> &ordem)
+int place_transistores(list<transistor*> trans_list, queue<char> &ordem, list<transistor*> &nova_list, string eq)
 {
 	int pos_n = 1;
 	int pos_p = 1;
 	int gaps_n = 0;
 	int gaps_p = 0;
-	list<transistor*> nova_list;
+	//list<transistor*> nova_list;
+	transistor *temp;
 	list<transistor*>::iterator ant_n = trans_list.begin();
 	list<transistor*>::iterator ant_p = trans_list.begin();
 	while(ordem.front() == '+' || ordem.front() == '*')
@@ -748,30 +762,37 @@ int place_transistores(list<transistor*> trans_list, queue<char> &ordem)
 		ordem.pop();
 		
 	}
-	
+
 	while(!ordem.empty())
 	{
 		list<transistor*>::iterator it = trans_list.begin();
 		if(ordem.front() == '+')
 		{
-			while(ordem.front() == '+')
+			while(ordem.front() == '+' || ordem.front() == '*')
 			{
 				//cout<<"tirei "<<ordem.front()<<endl;	
 				ordem.pop();
 			}
-			pos_n++;
-			gaps_n++;
+			if(!ordem.empty())
+				{
+					pos_n++;
+					gaps_n++;
+				}
 		}
 		else
 			if(ordem.front() == '*')
 			{
-				while(ordem.front() == '*')
+				while(ordem.front() == '*' || ordem.front() == '+')
 				{
 					//cout<<"tirei "<<ordem.front()<<endl;	
 					ordem.pop();
 				}
-				pos_p++;
-				gaps_p++;
+				if(!ordem.empty())
+				{
+					pos_p++;
+					gaps_p++;
+				}
+				
 			}
 		else
 		{
@@ -824,8 +845,9 @@ int place_transistores(list<transistor*> trans_list, queue<char> &ordem)
 								ant_p = it;
 							}
 						}
-						//cout<<"M"<<(*it)->num<<" de sinal de gate "<<(*it)->gate<<" e tipo "<<(*it)->tipo<<" na posição  "<<(*it)->pos<<endl;
-					nova_list.push_back(*it);
+						cout<<"M"<<(*it)->num<<" de sinal de gate "<<(*it)->gate<<" e tipo "<<(*it)->tipo<<" na posição  "<<(*it)->pos<<endl;
+					temp = new transistor((*it)->tipo, (*it)->num, (*it)->drain, (*it)->gate, (*it)->source, (*it)->pos);
+					nova_list.push_back(temp);
 
 				}
 			
@@ -836,10 +858,14 @@ int place_transistores(list<transistor*> trans_list, queue<char> &ordem)
 			pos_p+=2;
 		}	
 	}
-	cout<<"Número de gaps em N: "<<gaps_n<<endl;
-	cout<<"Número de gaps em P: "<<gaps_p<<endl;
 	
-	swap(trans_list,nova_list);
+	ofstream file;
+	file.open("linhas_e_gaps.txt", std::ios::app);
+	file<<"A equação é :" << eq;
+	file<<"	Número de gaps em N: "<<gaps_n;
+	file<<"	Número de gaps em P: "<<gaps_p<<endl;
+	file.close();
+	//swap(trans_list,nova_list);
 	return (max(pos_n,pos_p) - 1);
 }
 
