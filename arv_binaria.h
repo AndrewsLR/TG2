@@ -16,10 +16,10 @@ typedef struct node{
 typedef struct q_node{
 
     char tipo;				
-    struct node* filho1 = nullptr;
-    struct node* filho2 = nullptr;
-	struct node* filho3 = nullptr;
-    struct node* filho4 = nullptr;
+    struct q_node* filho1 = nullptr;
+    struct q_node* filho2 = nullptr;
+	struct q_node* filho3 = nullptr;
+    struct q_node* filho4 = nullptr;
 }q_node;
 
 int precedencia(char op)
@@ -164,26 +164,86 @@ void pinta_arv(node *root)
 	return;
 }
 
-/*void converte(node* root, q_node *new_root)
-//desce ate as folhas, volta fundindo em nova arvore
-{
-	q_node *temp;
-	if(root->esquerda == '+' || '*')
+void converte(node* root, q_node*& new_root) {
+   q_node *temp;
+	if(root->esquerda->tipo == '+' || root->esquerda->tipo == '*')
 	{
-		converte(root->esquerda);
+		converte(root->esquerda,new_root);
+		if(root->tipo != new_root->tipo)
+		{
+			temp = new q_node;
+			temp->tipo = root->tipo;
+			temp->filho1 = new_root;
+			new_root = temp;
+		}
+		else
+		{
+			if(root->direita->tipo != '+' && root->direita->tipo != '*')
+				if(new_root->filho3 == nullptr)
+				{
+					new_root->filho3 = new q_node;
+					new_root->filho3->tipo = root->direita->tipo;
+				}
+				else
+				{
+					new_root->filho4 = new q_node;
+					new_root->filho4->tipo = root->direita->tipo;
+				}
+		}
 	}
-	if(root->tipo == new_root->tipo)
+	if(root->direita->tipo == '+' || root->direita->tipo == '*')
 	{
-		
+		converte(root->direita,new_root);
+	}
+	else if(new_root != nullptr)
+	{
+		if(new_root->filho1 == nullptr)
+		{
+			new_root->filho1 = new q_node;
+			new_root->filho1->tipo = root->direita->tipo;
+		}
+		else if(new_root->filho2 == nullptr)
+		{
+			new_root->filho2 = new q_node;
+			new_root->filho2->tipo = root->direita->tipo;
+		}
+		else if(new_root->filho3 == nullptr)
+		{
+			new_root->filho3 = new q_node;
+			new_root->filho3->tipo = root->direita->tipo;
+		}
+		else if(new_root->filho4 == nullptr)
+		{
+			new_root->filho4 = new q_node;
+			new_root->filho4->tipo = root->direita->tipo;
+		}
+	}
+	if(root->direita->tipo != '+' && root->direita->tipo != '*' && root->esquerda->tipo != '+' && root->esquerda->tipo != '*')
+	{
+		new_root = new q_node;
+		new_root->tipo = root->tipo;
+		new_root->filho1 = new q_node;
+		new_root->filho2 = new q_node;
+		new_root->filho1->tipo = root->esquerda->tipo;
+		new_root->filho2->tipo = root->direita->tipo;
+	}
+	
+	
+	return;
+}
 
-	}
-	else
-	{
-		temp = new q_node;
-	}
-	if(root->direita == '+' || '*')
-	{
-		converte(root->direita);
-	}
 
-}*/
+
+void percorreEImprime(q_node* &root) {
+    if (!root) return; // Caso base: se o nó atual for nulo, encerra a recursão.
+
+    // Imprime o tipo do nó atual.
+    std::cout << root->tipo << " ";
+
+    // Chama a função recursivamente para os filhos (se existirem).
+    if (root->filho1) percorreEImprime(root->filho1);
+    if (root->filho2) percorreEImprime(root->filho2);
+    if (root->filho3) percorreEImprime(root->filho3);
+    if (root->filho4) percorreEImprime(root->filho4);
+}
+
