@@ -7,3 +7,10 @@ TESTE.spice
 TESTE.spice
 le_genlib.py
 *.spice
+*.json
+*.sqlite
+*.vsidx
+/.vs
+*.txt
+*.py
+*.spice

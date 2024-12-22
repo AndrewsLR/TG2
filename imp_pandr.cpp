@@ -60,7 +60,9 @@ void faz_postfix(stack<char> &postfix, string eq);												//faz postfix
 void monta_arv(node *ptr, stack<char> &postfix);												//monta a arvore
 void printLevelOrder(node *root);																//printa a arvore
 void pinta_arv(node *root);																		//pinta a arvore (faz algoritmo de Uehara e Cleemput
-void retorna_ordem(node *root, queue<char> &ordem);												
+void retorna_ordem(node *root, queue<char> &ordem);		
+void converte(node* root, q_node *&new_root);	
+void percorreEImprime(q_node* &root);									
 
 void faz_netlist(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
 void faz_netlist_p(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
@@ -70,6 +72,7 @@ int place_transistores(list<transistor*> trans_list, queue<char> &ordem, list<tr
 void left_edge(list<transistor*> trans_list, int largura, queue<net> &nets);				//
 
 node raiz;
+q_node* q_raiz;
 
 int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e))), SEM INVERSORES
 {
@@ -97,8 +100,10 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	pinta_arv(&raiz);
 	printLevelOrder(&raiz);
 	retorna_ordem(&raiz, ordem);
-	
-	cout<<endl;
+	converte(&raiz, q_raiz);
+	percorreEImprime(q_raiz);
+	//cout<<"TESTE "<<q_raiz->filho4->tipo;
+	/*
 	faz_netlist(&raiz, net_n, trans_list, fix, bott);	
 	int menor;
 	int flag_saida = 0;												//flag que avisa se e necessario substituir o net de saida
@@ -134,18 +139,31 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 		cout<<"LISTA VAZIA";
 		exit(1);
 	}
-		
+	list<string>::iterator it2 = subs_list.begin();
+	while(it2 != subs_list.end())
+	{
+		cout<<*it2<<", ";
+		it2++;
+	}
+	
 	concerta(subs, trans_list, subs_list);
-
+	//escreve(trans_list);
+	
 	stack<int>empty_stack;
 	queue<int>empty_list;
+	list<string> empty_slist;
+	swap(subs_list,empty_slist);
 	swap(bott,empty_stack);
 	swap(fix,empty_list);
+	
 	faz_netlist_p(&raiz, net_p, trans_list, fix, bott);	
 
 	int saida_p = net_p.top();
 	//cout<<"NET P TOP: "<<saida_p<<endl;
-	menor=0;
+	if(!fix.empty())
+	{
+		menor = fix.front();
+	}
 	while(!fix.empty())
 	{
 		if(fix.front() <= menor)
@@ -165,16 +183,23 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 
 	}
 	//cout<<"Net a substituir: n"<<menor<<endl;
+	it2 = subs_list.begin();
+	while(it2 != subs_list.end())
+	{
+		cout<<*it2<<", ";
+		it2++;
+	}
 	if(menor != 0)
 	{
 		subs = "n"+to_string(menor);
 		cout<<"SAIDA EM do P é n"<<saida_p<<endl;
-		concerta(subs, trans_list, subs_list);
+		
 	}
+	concerta(subs, trans_list, subs_list);
 	
 	subs = "n"+to_string(saida);
 	subs_list.push_back("n"+to_string(saida_p));
-	concerta(subs,trans_list, subs_list);
+	concerta(subs,trans_list, subs_list);	
 	//escreve(trans_list);
 	//cout<<"ORDEM ";
 	//while(!ordem.empty())
@@ -196,7 +221,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 		file<<"NET "<<nets.front().nome<< " "<<nets.front().inicio<<"-"<<nets.front().fim<<" linha "<<nets.front().linha<<endl;
 		nets.pop();
 	}
-	file.close();
+	file.close(); */
 	return 0;
 }
 
