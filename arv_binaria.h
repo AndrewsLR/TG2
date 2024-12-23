@@ -22,7 +22,7 @@ typedef struct q_node{
     struct q_node* filho4 = nullptr;
 }q_node;
 
-void percorreEImprime(q_node* &root);
+void cmp_adiciona_filho(q_node* new_root, q_node* filho, node* root);
 
 int precedencia(char op)
 {
@@ -221,129 +221,31 @@ void converte(node* root, q_node*& new_root) {
 		if(new_root == nullptr)												// vai mais fundo pra direita com primeiro nodo vazio
 		{
 			converte(root->direita,new_root);
+			cmp_adiciona_filho(new_root, new_root, root);
 		}	
 		else if(new_root->filho1 == nullptr)
 		{
 			converte(root->direita,new_root->filho1);
+			cmp_adiciona_filho(new_root, new_root->filho1, root);
 		}
 		else if(new_root->filho2 == nullptr)
 		{
 			converte(root->direita,new_root->filho2);
+			cmp_adiciona_filho(new_root, new_root->filho2, root);
 		}
 		else if(new_root->filho3 == nullptr)
 		{
 			converte(root->direita,new_root->filho3);
+			cmp_adiciona_filho(new_root, new_root->filho3, root);
 		}
 		else
 		{
 			converte(root->direita,new_root->filho4);
+			cmp_adiciona_filho(new_root, new_root->filho4, root);
 		}
 		
-		if(root->tipo != new_root->tipo)
-		{
-			if(new_root->filho1 == nullptr)
-			{
-				temp = new q_node;
-				temp->tipo = root->tipo;
-				temp->filho1 = new_root;
-				new_root = temp;
-			}
-			else if(new_root->filho2 == nullptr)
-			{
-				temp = new q_node;
-				temp->tipo = root->tipo;
-				temp->filho2 = new_root;
-				new_root = temp;
-			}
-			else if(new_root->filho3 == nullptr)
-			{
-				temp = new q_node;
-				temp->tipo = root->tipo;
-				temp->filho3 = new_root;
-				new_root = temp;
-			}
-			else
-			{
-				temp = new q_node;
-				temp->tipo = root->tipo;
-				temp->filho4 = new_root;
-				new_root = temp;
-			}
-			
-		}
-		else																													//se forem iguais, verifica se existe filho in na esquerda, adiciona ele e rouba filhos do filho da direita
-		{
-				if(root->esquerda->tipo != '+' && root->esquerda->tipo != '*')
-				{
-					if(new_root->filho1 == nullptr)
-					{
-						new_root->filho1 = new q_node;
-						new_root->filho1->tipo = root->esquerda->tipo;
-					}
-					else if(new_root->filho2 == nullptr)
-					{
-						new_root->filho2 = new q_node;
-						new_root->filho2->tipo = root->esquerda->tipo;
-					}
-					else if(new_root->filho3 == nullptr)
-					{
-						new_root->filho3 = new q_node;
-						new_root->filho3->tipo = root->esquerda->tipo;
-					}
-					else
-					{
-						new_root->filho4 = new q_node;
-						new_root->filho4->tipo = root->esquerda->tipo;
-					}
-				}
-				else
-				{
-					//rouba filho do filho da esquerda
-					if(new_root->filho1 == nullptr)
-					{
-						new_root->filho1 = new q_node;
-						new_root->filho1->tipo = root->esquerda->esquerda->tipo;
-					}
-					else if(new_root->filho2 == nullptr)
-					{
-						new_root->filho2 = new q_node;
-						new_root->filho2->tipo = root->esquerda->esquerda->tipo;
-					}
-					else if(new_root->filho3 == nullptr)
-					{
-						new_root->filho3 = new q_node;
-						new_root->filho3->tipo = root->esquerda->esquerda->tipo;
-					}
-					else
-					{
-						new_root->filho4 = new q_node;
-						new_root->filho4->tipo = root->esquerda->esquerda->tipo;
-					}
-					
-					//rouba filho da direita do filho
-					if(new_root->filho1 == nullptr)
-					{
-						new_root->filho1 = new q_node;
-						new_root->filho1->tipo = root->esquerda->direita->tipo;
-					}
-					else if(new_root->filho2 == nullptr)
-					{
-						new_root->filho2 = new q_node;
-						new_root->filho2->tipo = root->esquerda->direita->tipo;
-					}
-					else if(new_root->filho3 == nullptr)
-					{
-						new_root->filho3 = new q_node;
-						new_root->filho3->tipo = root->esquerda->direita->tipo;
-					}
-					else
-					{
-						new_root->filho4 = new q_node;
-						new_root->filho4->tipo = root->esquerda->direita->tipo;
-					}
-				}
-		}
 	}
+		
 	else 
 	{
 		if(new_root != nullptr)
@@ -392,18 +294,135 @@ void converte(node* root, q_node*& new_root) {
 	return;
 }
 
+void percorreEImprime(q_node* &root, const std::string& prefix, bool isLast) {
+    if (!root) return;
 
+    std::cout << prefix << (isLast ? "└── " : "├── ") << root->tipo << "\n";
 
-void percorreEImprime(q_node* &root) {
-    if (!root) return; // Caso base: se o nó atual for nulo, encerra a recursão.
+    std::string newPrefix = prefix + (isLast ? "    " : "│   ");
 
-    // Imprime o tipo do nó atual.
-    std::cout << root->tipo << " ";
+    q_node* filhos[] = {root->filho1, root->filho2, root->filho3, root->filho4};
+    int count = 0;
 
-    // Chama a função recursivamente para os filhos (se existirem).
-    if (root->filho1) percorreEImprime(root->filho1);
-    if (root->filho2) percorreEImprime(root->filho2);
-    if (root->filho3) percorreEImprime(root->filho3);
-    if (root->filho4) percorreEImprime(root->filho4);
+    for (auto filho : filhos) {
+        if (filho) count++;
+    }
+
+    for (int i = 0, printed = 0; i < 4; i++) {
+        if (filhos[i]) {
+            percorreEImprime(filhos[i], newPrefix, ++printed == count);
+        }
+    }
 }
+
+void cmp_adiciona_filho(q_node* new_root, q_node* filho, node* root) //função para adicionar nodos da direita, separado em função por que depende qual filho
+{
+	q_node *temp = nullptr;
+	if(root->tipo != filho->tipo) 
+		{
+			if(new_root->filho1 == nullptr)
+			{
+				temp = new q_node;
+				temp->tipo = root->tipo;
+				temp->filho1 = filho;
+				new_root = temp;
+			}
+			else if(new_root->filho2 == nullptr)
+			{
+				temp = new q_node;
+				temp->tipo = root->tipo;
+				temp->filho2 = filho;
+				new_root = temp;
+			}
+			else if(new_root->filho3 == nullptr)
+			{
+				temp = new q_node;
+				temp->tipo = root->tipo;
+				temp->filho3 = filho;
+				new_root = temp;
+			}
+			else
+			{
+				temp = new q_node;
+				temp->tipo = root->tipo;
+				temp->filho4 = filho;
+				new_root = temp;
+			}
+			
+		}
+		else		//se forem iguais, verifica se existe filho in na esquerda, adiciona ele e rouba filhos do filho da direita
+		{
+				if(root->esquerda->tipo != '+' && root->esquerda->tipo != '*')
+				{
+					if(new_root->filho1 == nullptr)
+					{
+						new_root->filho1 = new q_node;
+						new_root->filho1->tipo = root->esquerda->tipo;
+					}
+					else if(new_root->filho2 == nullptr)
+					{
+						new_root->filho2 = new q_node;
+						new_root->filho2->tipo = root->esquerda->tipo;
+					}
+					else if(new_root->filho3 == nullptr)
+					{
+						new_root->filho3 = new q_node;
+						new_root->filho3->tipo = root->esquerda->tipo;
+					}
+					else
+					{
+						new_root->filho4 = new q_node;
+						new_root->filho4->tipo = root->esquerda->tipo;
+					}
+				}
+				else //PROBLEMA AQUI
+				{
+					//rouba filho do filho da esquerda
+					if(new_root->filho1 == nullptr)
+					{
+						new_root->filho1 = new q_node;
+						new_root->filho1->tipo = root->esquerda->esquerda->tipo;
+					}
+					else if(new_root->filho2 == nullptr)
+					{
+						new_root->filho2 = new q_node;
+						new_root->filho2->tipo = root->esquerda->esquerda->tipo;
+					}
+					else if(new_root->filho3 == nullptr)
+					{
+						new_root->filho3 = new q_node;
+						new_root->filho3->tipo = root->esquerda->esquerda->tipo;
+					}
+					else
+					{
+						new_root->filho4 = new q_node;
+						new_root->filho4->tipo = root->esquerda->esquerda->tipo;
+					}
+					
+					//rouba filho da direita do filho
+					if(new_root->filho1 == nullptr)
+					{
+						new_root->filho1 = new q_node;
+						new_root->filho1->tipo = root->esquerda->direita->tipo;
+					}
+					else if(new_root->filho2 == nullptr)
+					{
+						new_root->filho2 = new q_node;
+						new_root->filho2->tipo = root->esquerda->direita->tipo;
+					}
+					else if(new_root->filho3 == nullptr)
+					{
+						new_root->filho3 = new q_node;
+						new_root->filho3->tipo = root->esquerda->direita->tipo;
+					}
+					else
+					{
+						new_root->filho4 = new q_node;
+						new_root->filho4->tipo = root->esquerda->direita->tipo;
+					}
+				}
+		}
+}
+	
+
 

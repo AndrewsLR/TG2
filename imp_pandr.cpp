@@ -61,8 +61,8 @@ void monta_arv(node *ptr, stack<char> &postfix);												//monta a arvore
 void printLevelOrder(node *root);																//printa a arvore
 void pinta_arv(node *root);																		//pinta a arvore (faz algoritmo de Uehara e Cleemput
 void retorna_ordem(node *root, queue<char> &ordem);		
-void converte(node* root, q_node *&new_root);	
-void percorreEImprime(q_node* &root);									
+void converte(node* root, q_node *&new_root);
+void percorreEImprime(q_node* &root, const std::string& prefix = "", bool isLast = true);								
 
 void faz_netlist(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
 void faz_netlist_p(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
@@ -73,6 +73,9 @@ void left_edge(list<transistor*> trans_list, int largura, queue<net> &nets);				
 
 node raiz;
 q_node* q_raiz;
+
+
+
 
 int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e))), SEM INVERSORES
 {
@@ -101,6 +104,8 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	printLevelOrder(&raiz);
 	retorna_ordem(&raiz, ordem);
 	converte(&raiz, q_raiz);
+	const std::string& prefix = "";
+	bool isLast = true;
 	percorreEImprime(q_raiz);
 	//cout<<"TESTE "<<q_raiz->filho4->tipo;
 	/*
