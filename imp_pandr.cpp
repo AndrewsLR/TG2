@@ -1,5 +1,5 @@
 #include <queue>
-#include <list>
+
 #include <fstream>
 
 #include "arv_binaria.h"
@@ -62,7 +62,8 @@ void printLevelOrder(node *root);																//printa a arvore
 void pinta_arv(node *root);																		//pinta a arvore (faz algoritmo de Uehara e Cleemput
 void retorna_ordem(node *root, queue<char> &ordem);		
 void converte(node* root, q_node *&new_root);
-void percorreEImprime(q_node* &root, const std::string& prefix = "", bool isLast = true);								
+void percorreEImprime(q_node* &root, const std::string& prefix = "", bool isLast = true);
+void ordena(q_node *root);								
 
 void faz_netlist(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
 void faz_netlist_p(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
@@ -106,8 +107,9 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	converte(&raiz, q_raiz);
 	const std::string& prefix = "";
 	bool isLast = true;
+	//percorreEImprime(q_raiz);
+	ordena(q_raiz);
 	percorreEImprime(q_raiz);
-	//cout<<"TESTE "<<q_raiz->filho4->tipo;
 	/*
 	faz_netlist(&raiz, net_n, trans_list, fix, bott);	
 	int menor;
