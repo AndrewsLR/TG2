@@ -37,7 +37,7 @@ def launch_executable(executable_path, arguments):
             # Just pass the argument directly without additional quotes
             print(f"Launching {executable_path} with argument: {arg}")
             subprocess.run([executable_path, arg], check=True)
-            #input("Press Enter to continue...")  # Wait for user input before proceeding
+            input("Press Enter to continue...")  # Wait for user input before proceeding
         except FileNotFoundError:
             print(f"Error: Executable {executable_path} not found.")
         except subprocess.CalledProcessError as e:

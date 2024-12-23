@@ -280,18 +280,18 @@ void ordena(q_node *root)
 				it = root->filhos.erase(it);
 				ordem++;
 			}
-			if(it != root->filhos.end())
+			else
 				it++;
 		}
 		//cout<<"PASSOU LOOP1"<<endl;
 		//cout<<"ORDEM APONTA PARA: "<<(*ordem)->tipo<<endl;
 		it = ordem;
-		int flag_mix = 0;												//se ja encontrou um misto, proximos mistos são invertidos
+		int flag_mix = 0;												//se ja encontrou um misto, proximo misto é invertido
 		while(it != root->filhos.end())									//coloca mistos
 		{
 			if((*it)->cor == 2 && flag_mix == 0)
 			{
-				cout<<"CAIU AQUI quando "<<(*it)->tipo<<endl;
+				//cout<<"CAIU AQUI quando "<<(*it)->tipo<<endl;
 				root->filhos.insert(ordem,*it);
 				it = root->filhos.erase(it);
 				ordem++;
@@ -301,20 +301,24 @@ void ordena(q_node *root)
 			{
 				if((*it)->cor == 2 && flag_mix == 1)
 				{
-					cout<<"CAIU NESSE quando "<<(*it)->tipo<<endl;
+					//cout<<"CAIU NESSE quando "<<(*it)->tipo<<endl;
 					(*it)->cor = 1;
+					(*it)->filhos.reverse();
 					root->filhos.push_back(*it);
 					it = root->filhos.erase(it);
+					
+					flag_mix = 0;
 				}
+				else
+					it++;
 			}
 			
-			if(it != root->filhos.end())
-				it++;
+				
 		}
 		//cout<<"PASSOU LOOP2"<<endl;
 		it = root->filhos.begin();
 																		//define cor do nodo
-		if((*it)->cor == (*it2)->cor)
+		if((*it)->cor == (*it2)->cor)									//se forem iguais, so pode ser branco (3) ou preto (0)
 		{
 			if((*it)->cor == 0)
 			{
@@ -323,15 +327,19 @@ void ordena(q_node *root)
 			else
 				root->cor = 3;
 		}
-		else
+		else															//se forem diferentes, pode ser mistoP(1), mistoB(2) ou branco(3)
 		{
-			if((*it)->cor == 0)
-				root->cor = 1;
-			else
-				root->cor = 2;
+				if((*it)->cor == 0)
+					root->cor = 1;
+				else 
+					if((*it)->cor == 3 && (*it2)->cor == 1)
+						root->cor = 3;
+					else
+						root->cor = 2;
 		}
 	}
-}
 	
+	return;
+}
 	
 
