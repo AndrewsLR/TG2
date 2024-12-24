@@ -65,6 +65,7 @@ void converte(node* root, q_node *&new_root);
 void percorreEImprime(q_node* &root, const std::string& prefix = "", bool isLast = true);
 void ordena(q_node *root);								
 
+void faz_netlist_ordenado(list<transistor*> trans_list, q_node*& root, stack<int> &bott, stack<int> &top, char op);							//faz netlist usando arvoe n-aria ordenada
 void faz_netlist(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
 void faz_netlist_p(node *ptr, stack<int> &net_n, list<transistor*> &trans_list, queue<int> &fix, stack<int> &bott);					//faz o netlist e coloca em uma lista
 void concerta(string subs, list<transistor*> trans_list, list<string> subs_list);
@@ -91,6 +92,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	stack<int> net_p;										//usado para conectar as nets durante a criacao do netlist, ao final tem o net de saida + o net a ser trocado pelo de saida
 	queue<int> fix;
 	stack<int> bott;										// para guardar a net de baixo quando houver nodo com 2 OP * HAHAHAHA
+	stack<int> top;											// para guardar net de topo					
 	list<transistor*> trans_list;							//todos os transistores criados
 	list<string> subs_list;									//lista de nomes de net a serem trocados
 	string eq = argv[1];
@@ -110,6 +112,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	//percorreEImprime(q_raiz);
 	ordena(q_raiz);
 	percorreEImprime(q_raiz);
+	faz_netlist_ordenado(trans_list, q_raiz, bott, top, '0');
 	/*
 	faz_netlist(&raiz, net_n, trans_list, fix, bott);	
 	int menor;
@@ -986,3 +989,136 @@ void printLevelOrder(node *root) {		//da internet : https://www.geeksforgeeks.or
         }
     }
 	
+void faz_netlist_ordenado(list<transistor*> trans_list, q_node*& root, stack<int> &bott, stack<int> &top, char op)
+{
+	transistor *temp;
+	if(!root)
+		return;
+	int cont = 0;
+	if(root->tipo == '*')															//se *, guarda net de topo em bott, se +, guarda nets em top e bott
+	{
+		for(q_node* filho : root->filhos)
+		{
+			cont++;
+			if(filho->tipo == '*' || filho->tipo == '+')
+			{
+				faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo);
+			}
+			else
+			{
+				if(top.empty())										//se o bott estiver vazio, conecta no GND e cria novo net
+				{
+					cout<<"M"<<trans_number<<" GND"<<" "<<filho->tipo<<" n"<<net_number<<endl;
+					temp = new transistor('n', trans_number, "GND", filho->tipo, "n"+to_string(net_number));
+					trans_list.push_back(temp);
+					top.push(net_number);																		//adiciona novo net em bott
+				}
+				else
+				{
+					cout<<"M"<<trans_number<<" n"<<top.top()<<" "<<filho->tipo<<" n"<<net_number<<endl;
+					temp = new transistor('n', trans_number, "n"+to_string(top.top()), filho->tipo, "n"+to_string(net_number));
+					trans_list.push_back(temp);
+					top.push(net_number);
+				}
+				
+				trans_number++;
+				net_number++;
+			}
+
+		}
+		if(op == '+')																						//quando a op anterior e OR, remove todos os nets criados do stack
+		{																									//se houve transistor naquele OR(checa se top esta vazio), conecta de volta no bot dele
+			for(int i = 0; i < cont; i++)
+				top.pop();
+			
+			list<transistor*>::reverse_iterator it = trans_list.rbegin();
+			if(!top.empty())
+			{
+				if(bott.empty())
+				{
+					(*it)->source = "GND";
+				}
+				else
+				{
+					(*it)->source = "n"+to_string(bott.top());
+				}
+				cout<<"TROCA: ";
+				cout<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<endl;
+			}
+			
+			net_number--;
+		}
+	}
+	//o primeiro cara deve estar tipo em serie, so deve fechar o paralelo quando terminar
+	if(root->tipo == '+')																						//se *, guarda net de topo em bott, se +, guarda nets em top e bott
+	{
+		int primeiro = 0;
+		for(q_node* filho : root->filhos)
+		{
+			
+			if(filho->tipo == '*' || filho->tipo == '+')
+			{
+				faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo);
+			}
+			else
+			{
+				if(op == '*' && primeiro == 0)
+				{
+					cout<<"M"<<trans_number<<" n"<<top.top()<<" "<<filho->tipo<<" n"<<net_number<<endl;
+					temp = new transistor('n', trans_number, "n"+to_string(top.top()), filho->tipo, "n"+to_string(net_number));
+					trans_list.push_back(temp);
+					bott.push(top.top());
+					top.pop();
+					top.push(net_number);
+					net_number++;
+					primeiro = 1;
+				}
+				else
+				{
+					if(bott.empty() && top.empty())																		//se o bott e o top estiverem vazios, primeiro do paralelo
+					{
+						cout<<"M"<<trans_number<<" GND"<<" "<<filho->tipo<<" n"<<net_number<<endl;
+						temp = new transistor('n', trans_number, "GND", filho->tipo, "n"+to_string(net_number));
+						trans_list.push_back(temp);
+						top.push(net_number);																			//bott continua sendo GND, top é novo net
+						net_number++;
+					}
+					else																								
+					{																									
+						if(!bott.empty() && !top.empty())
+						{
+							cout<<"M"<<trans_number<<" n"<<bott.top()<<" "<<filho->tipo<<" n"<<top.top()<<endl;								
+							temp = new transistor('n', trans_number, "n"+to_string(bott.top()), filho->tipo, "n"+to_string(top.top()));
+							trans_list.push_back(temp);
+						}
+						
+						else
+							if(bott.empty())
+							{
+								cout<<"M"<<trans_number<<" GND"<<" "<<filho->tipo<<" n"<<top.top()<<endl;								
+								temp = new transistor('n', trans_number, "GND", filho->tipo, "n"+to_string(top.top()));
+								trans_list.push_back(temp);
+							}
+							else
+								if(top.empty())
+								{
+									cout<<"M"<<trans_number<<" n"<<bott.top()<<" "<<filho->tipo<<" n"<<net_number<<endl;								
+									temp = new transistor('n', trans_number, "n"+to_string(bott.top()), filho->tipo, "n"+to_string(net_number));
+									trans_list.push_back(temp);
+									top.push(net_number);
+									net_number++;
+								}
+						
+					}
+				}
+				
+				
+				trans_number++;
+			}
+
+		}
+		
+		
+	}
+	return;
+}
