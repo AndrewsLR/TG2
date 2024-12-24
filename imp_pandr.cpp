@@ -1001,13 +1001,14 @@ void faz_netlist_ordenado(list<transistor*> trans_list, q_node*& root, stack<int
 		int cont = 0;
 		for(q_node* filho : root->filhos)
 		{
-			cont++;
+			
 			if(filho->tipo == '*' || filho->tipo == '+')
 			{
 				faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo);
 			}
 			else
 			{
+				cont++;
 				if(top.empty())										//se o bott estiver vazio, conecta no GND e cria novo net
 				{
 					cout<<"M"<<trans_number<<" GND"<<" "<<filho->tipo<<" n"<<net_number<<endl;
@@ -1029,25 +1030,22 @@ void faz_netlist_ordenado(list<transistor*> trans_list, q_node*& root, stack<int
 
 		}
 		if(op == '+')																						//quando a op anterior e OR, remove todos os nets criados do stack
-		{																									//se houve transistor naquele OR(checa se top esta vazio), conecta de volta no bot dele
+		{																									//se houve transistor naquele OR, conecta de volta no bot dele
+			cout<<"TEM QUE TROCAR"<<endl;
 			for(int i = 0; i < cont; i++)
 				top.pop();
-			
 			list<transistor*>::reverse_iterator it = trans_list.rbegin();
-			if(!top.empty())
+
+			if(bott.empty())
 			{
-				if(bott.empty())
-				{
-					(*it)->source = "GND";
-				}
-				else
-				{
-					(*it)->source = "n"+to_string(bott.top());
-				}
-				cout<<"TROCA: ";
-				cout<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<endl;
+				(*it)->source = "GND";
 			}
-			
+			else
+			{
+				(*it)->source = "n"+to_string(bott.top());
+			}
+			cout<<"TROCA: ";
+			cout<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<endl;
 			net_number--;
 		}
 	}
