@@ -104,14 +104,15 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	quebra_portas(eq);
 	string subs ="0";
 	pinta_arv(&raiz);
+	cout<<"Arvore binaria:"<<endl;
 	printLevelOrder(&raiz);
 	retorna_ordem(&raiz, ordem);
 	converte(&raiz, q_raiz);
-	const std::string& prefix = "";
-	bool isLast = true;
 	//percorreEImprime(q_raiz);
 	ordena(q_raiz);
+	cout<<"Arvore N-aria ja ordenada"<<endl;
 	percorreEImprime(q_raiz);
+	cout<<"Netlist Pulldown:"<<endl;
 	faz_netlist_ordenado(trans_list, q_raiz, bott, top, '0');
 	/*
 	faz_netlist(&raiz, net_n, trans_list, fix, bott);	
@@ -994,9 +995,10 @@ void faz_netlist_ordenado(list<transistor*> trans_list, q_node*& root, stack<int
 	transistor *temp;
 	if(!root)
 		return;
-	int cont = 0;
+	
 	if(root->tipo == '*')															//se *, guarda net de topo em bott, se +, guarda nets em top e bott
 	{
+		int cont = 0;
 		for(q_node* filho : root->filhos)
 		{
 			cont++;
@@ -1053,9 +1055,11 @@ void faz_netlist_ordenado(list<transistor*> trans_list, q_node*& root, stack<int
 	if(root->tipo == '+')																						//se *, guarda net de topo em bott, se +, guarda nets em top e bott
 	{
 		int primeiro = 0;
+		int cont = 0;
 		for(q_node* filho : root->filhos)
 		{
 			
+			cont++;
 			if(filho->tipo == '*' || filho->tipo == '+')
 			{
 				faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo);
@@ -1117,7 +1121,8 @@ void faz_netlist_ordenado(list<transistor*> trans_list, q_node*& root, stack<int
 			}
 
 		}
-		
+		if(primeiro == 1)
+			bott.pop();
 		
 	}
 	return;
