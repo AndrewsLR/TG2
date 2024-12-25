@@ -303,6 +303,12 @@ void ordena(q_node *root)
 				{
 					//cout<<"CAIU NESSE quando "<<(*it)->tipo<<endl;
 					(*it)->cor = 1;
+					list<q_node*>::iterator inverte = (*it)->filhos.begin();
+					while(inverte != (*it)->filhos.end())
+					{
+						(*inverte)->filhos.reverse();
+						inverte++;
+					}
 					(*it)->filhos.reverse();
 					root->filhos.push_back(*it);
 					it = root->filhos.erase(it);
