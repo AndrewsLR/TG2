@@ -263,7 +263,7 @@ void ordena(q_node *root)
 		list<q_node*>::reverse_iterator it2 = root->filhos.rbegin();
 		list<q_node*>::iterator ordem = root->filhos.begin();
 		
-		if((root->filhos.size() % 2) == 0) 								//numero par de filhos
+		if((root->filhos.size() % 2) == 0) 								//numero par de filhos, coloca pseudo
 		{
 			q_node* pseudo = new q_node;
 			pseudo->tipo = 'Z';
@@ -272,7 +272,7 @@ void ordena(q_node *root)
 		}
 		
 		
-		while(it != root->filhos.end())									//coloca brancos para o inicio, guardando primeira posição livre em ordem
+		while(it != root->filhos.end())									//coloca pseudos para o inicio, guardando primeira posição livre em ordem
 		{
 			if((*it)->cor == 3)
 			{
@@ -291,9 +291,16 @@ void ordena(q_node *root)
 		{
 			if((*it)->cor == 2 && flag_mix == 0)
 			{
-				//cout<<"CAIU AQUI quando "<<(*it)->tipo<<endl;
-				root->filhos.insert(ordem,*it);
-				it = root->filhos.erase(it);
+				cout<<"CAIU AQUI quando "<<(*it)->tipo<<endl;
+				if(ordem != it)
+				{
+					root->filhos.insert(ordem,*it);
+					it = root->filhos.erase(it);
+				}
+				else
+				{
+					it++;
+				}
 				ordem++;
 				flag_mix = 1;
 			}
@@ -301,7 +308,7 @@ void ordena(q_node *root)
 			{
 				if((*it)->cor == 2 && flag_mix == 1)
 				{
-					//cout<<"CAIU NESSE quando "<<(*it)->tipo<<endl;
+					cout<<"CAIU NESSE quando "<<(*it)->tipo<<endl;
 					(*it)->cor = 1;
 					list<q_node*>::iterator inverte = (*it)->filhos.begin();
 					while(inverte != (*it)->filhos.end())
