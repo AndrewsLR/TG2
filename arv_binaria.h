@@ -17,7 +17,8 @@ typedef struct node{
 typedef struct q_node{
 
     char tipo;
-	int cor = 0;					//0 = preto-entrada real, 1 = mistoP- preto no topo, 2 = mistoB - branco no topo, 3 = branco-pseudo entrada, 4 = indefinido
+	char al = '0';						//preenchido apenas em pseudos, diz se operacao ligada e * ou +
+	int cor = 0;						//0 = preto-entrada real, 1 = mistoP- preto no topo, 2 = mistoB - branco no topo, 3 = branco-pseudo entrada, 4 = indefinido
 	list<struct q_node*> filhos;
 }q_node;
 
@@ -267,6 +268,7 @@ void ordena(q_node *root)
 		{
 			q_node* pseudo = new q_node;
 			pseudo->tipo = 'Z';
+			pseudo->al = root->tipo;
 			pseudo->cor = 3;
 			root->filhos.push_front(pseudo);
 		}
