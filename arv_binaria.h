@@ -16,7 +16,7 @@ typedef struct node{
 
 typedef struct q_node{
 
-    char tipo;
+    char tipo = '0';
 	char al = '0';						//preenchido apenas em pseudos, diz se operacao ligada e * ou +
 	int cor = 0;						//0 = preto-entrada real, 1 = mistoP- preto no topo, 2 = mistoB - branco no topo, 3 = branco-pseudo entrada, 4 = indefinido
 	list<struct q_node*> filhos;
@@ -261,7 +261,6 @@ void ordena(q_node *root)
 	if(root->tipo == '+' || root->tipo == '*')
 	{
 		list<q_node*>::iterator it = root->filhos.begin();
-		list<q_node*>::reverse_iterator it2 = root->filhos.rbegin();
 		list<q_node*>::iterator ordem = root->filhos.begin();
 		
 		if((root->filhos.size() % 2) == 0) 								//numero par de filhos, coloca pseudo
@@ -310,7 +309,7 @@ void ordena(q_node *root)
 			{
 				if((*it)->cor == 2 && flag_mix == 1)
 				{
-					cout<<"CAIU NESSE quando "<<(*it)->tipo<<endl;
+					//cout<<"CAIU NESSE quando "<<(*it)->tipo<<endl;
 					(*it)->cor = 1;
 					list<q_node*>::iterator inverte = (*it)->filhos.begin();
 					while(inverte != (*it)->filhos.end())
@@ -319,8 +318,9 @@ void ordena(q_node *root)
 						inverte++;
 					}
 					(*it)->filhos.reverse();
-					root->filhos.push_back(*it);
-					it = root->filhos.erase(it);
+					(*it)->cor = 1;
+					//root->filhos.push_back(*it);
+					//it = root->filhos.erase(it);
 					
 					flag_mix = 0;
 				}
@@ -332,25 +332,20 @@ void ordena(q_node *root)
 		}
 		//cout<<"PASSOU LOOP2"<<endl;
 		it = root->filhos.begin();
-																		//define cor do nodo
+		list<q_node*>::reverse_iterator it2 = root->filhos.rbegin();																//define cor do nodo
 		if((*it)->cor == (*it2)->cor)									//se forem iguais, so pode ser branco (3) ou preto (0)
 		{
-			if((*it)->cor == 0)
-			{
-				root->cor = 0;
-			}
-			else
-				root->cor = 3;
+				root->cor = (*it)->cor;
 		}
 		else															//se forem diferentes, pode ser mistoP(1), mistoB(2) ou branco(3)
 		{
-				if((*it)->cor == 0)
-					root->cor = 1;
-				else 
-					if((*it)->cor == 3 && (*it2)->cor == 1)
+					if((*it)->cor == 2 && (*it2)->cor == 1)
 						root->cor = 3;
 					else
-						root->cor = 2;
+						if((*it)->cor == 3 && (*it2)->cor == 2)
+							root->cor = 3;
+						else
+							root->cor = 2;
 		}
 	}
 	
