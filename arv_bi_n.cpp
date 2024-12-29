@@ -1,27 +1,6 @@
-#include <iostream>
-#include <stack>
-#include <string>
-#include <list>
+#include "arv_bi_n.h"
+
 using namespace std;
-
-typedef struct node{
-
-    char tipo;
-	char pai;
-    int cor = 4;					//0 = preto-entrada real, 1 = mistoP- preto no topo, 2 = mistoB - branco no topo, 3 = branco-pseudo entrada, 4 = indefinido
-    struct node* esquerda = nullptr;
-    struct node* direita = nullptr;
-	
-}node;
-
-typedef struct q_node{
-
-    char tipo = '0';
-	char al = '0';						//preenchido apenas em pseudos, diz se operacao ligada e * ou +
-	int cor = 0;						//0 = preto-entrada real, 1 = mistoP- preto no topo, 2 = mistoB - branco no topo, 3 = branco-pseudo entrada, 4 = indefinido
-	list<struct q_node*> filhos;
-}q_node;
-
 
 int precedencia(char op)
 {
@@ -230,9 +209,6 @@ void converte(node* root, q_node*& new_root) 			//logica vai ate o fundo criando
     }
 }
 
-
-
-
 void percorreEImprime(q_node* &root, const std::string& prefix, bool isLast) {
     if (!root) return; // Caso base: nó nulo
 
@@ -249,7 +225,6 @@ void percorreEImprime(q_node* &root, const std::string& prefix, bool isLast) {
         percorreEImprime(*it, newPrefix, isLastChild);
     }
 }
-
 	
 void ordena(q_node *root)
 {
@@ -352,4 +327,32 @@ void ordena(q_node *root)
 	return;
 }
 	
+void printLevelOrder(node *root) {		//da internet : https://www.geeksforgeeks.org/how-to-print-data-in-binary-tree-level-by-level-in-cpp/
+        if (root == nullptr) return;  
+        
+        // Queue to store nodes for level order traversal
+        queue<node*> q;  
+        // Enqueue the root node
+        q.push(root);    
+        while (!q.empty()) {
+            // Get the current level size
+            int levelSize = q.size();  
+            // Process all nodes at the current level
+            for (int i = 0; i < levelSize; ++i) {
+                node* node = q.front();  
+                cout << node->tipo<< node->cor << " ";  
+                q.pop();  
+                
+                // Enqueue esquerda child if it exists
+                if (node->esquerda != nullptr)
+                    q.push(node->esquerda);
+                
+                // Enqueue direita child if it exists
+                if (node->direita != nullptr)
+                    q.push(node->direita);
+            }
+            // Print new line after each level is processed
+            cout << endl;  
+        }
+    }
 
