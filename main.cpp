@@ -63,6 +63,7 @@ void escreve(list<transistor*> trans_list);	//concerta a saida (remove net a mai
 int place_transistores(list<transistor*> &trans_list);						// faz o placement dos transistores (escreve posições nas transistor chains
 void left_edge(list<transistor*> trans_list, queue<net> &nets);				//
 
+void testa_gaps(list<transistor*> trans_list, string eq);
 void clean_stack(stack<int> &stack);
 
 node raiz;
@@ -108,7 +109,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	//faz netlist
 	cout<<"Netlist Pulldown:"<<endl;
 	faz_netlist_ordenado(trans_list_n, q_raiz, bott, top, '0', 1);
-
+	
 	clean_stack(bott);
 	clean_stack(top);
 	
@@ -117,6 +118,10 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	
 	
 	remove_pseudo(trans_list_n);
+	
+	//TESTE
+	//testa_gaps(trans_list_n, eq);
+	
 	remove_pseudo(trans_list_p);
 	
 	list<transistor*>::reverse_iterator saida = trans_list_n.rbegin();
@@ -211,15 +216,12 @@ int place_transistores(list<transistor*> &trans_list)
 	int gaps = 0;
 	while(it != trans_list.end())
 	{
-		if((*it)->gate == '*' || (*it)->gate == '+')																	//se for pseudo, remove todos, adiciona 1 na posiçao
+		if((*it)->gate == 'Z')																	//se for pseudo, remove todos, adiciona 1 na posiçao
 		{
-			while((*it)->gate == '*' || (*it)->gate == '+')
-			{
-				it = trans_list.erase(it);
-			}
 			pos++;
+			gaps++;
 			ant = it;
-			gaps++;	
+			it++;			
 		}
 		else
 		{
@@ -1059,6 +1061,35 @@ void subs (string substituir, string substituto, list<transistor*> &trans_list)
 		
 		it++;
 	}
+	return;
+}
+
+
+void testa_gaps(list<transistor*> trans_list, string eq)	// tentanto encontrar resultados similares, contado apenas um gap quando multiplos juntos, independednte de paralelo/serie
+{
+	int gaps = 0;
+	ofstream file;
+	list<transistor*>::iterator it = trans_list.begin();
+	while(it != trans_list.end())
+	{
+		if((*it)->gate == 'Z')
+		{
+			while ((*it)->gate == 'Z')
+			{
+				it++;
+			}
+			gaps++;
+		}
+		else
+		{
+			it++;
+		}
+	}
+	
+	file.open("gaps.txt", std::ios::app);
+	file<<"A equação é :" << eq<<endl;
+	file<<"Gaps : "<< gaps<<endl;
+	file.close();
 	return;
 }
 
