@@ -63,7 +63,8 @@ void escreve(list<transistor*> trans_list);	//concerta a saida (remove net a mai
 int place_transistores(list<transistor*> &trans_list);						// faz o placement dos transistores (escreve posições nas transistor chains
 void left_edge(list<transistor*> trans_list, queue<net> &nets);				//
 
-void testa_gaps(list<transistor*> trans_list, string eq);
+void testa_gaps(list<transistor*> trans_list, string eq, string saida);
+void remove_pseudo_primeiro(list<transistor*> &trans_list);
 void clean_stack(stack<int> &stack);
 
 node raiz;
@@ -117,12 +118,16 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	faz_netlist_ordenado_p(trans_list_p, q_raiz, top, bott, '0', 0);
 	
 	
-	remove_pseudo(trans_list_n);
+	//remove_pseudo(trans_list_n);
 	
-	//TESTE
-	//testa_gaps(trans_list_n, eq);
+	//TESTE só com n
+	remove_pseudo_primeiro(trans_list_n);
+	testa_gaps(trans_list_n, eq, "gaps_n");
 	
-	remove_pseudo(trans_list_p);
+	//remove_pseudo(trans_list_p);
+	//TESTE só com p
+	remove_pseudo_primeiro(trans_list_p);
+	testa_gaps(trans_list_p, eq, "gaps_p");
 	
 	list<transistor*>::reverse_iterator saida = trans_list_n.rbegin();
 	string saida_n = (*saida)->source;
@@ -1065,7 +1070,7 @@ void subs (string substituir, string substituto, list<transistor*> &trans_list)
 }
 
 
-void testa_gaps(list<transistor*> trans_list, string eq)	// tentanto encontrar resultados similares, contado apenas um gap quando multiplos juntos, independednte de paralelo/serie
+void testa_gaps(list<transistor*> trans_list, string eq, string saida)	// tentanto encontrar resultados similares, contado apenas um gap quando multiplos juntos, independednte de paralelo/serie
 {
 	int gaps = 0;
 	ofstream file;
@@ -1086,11 +1091,109 @@ void testa_gaps(list<transistor*> trans_list, string eq)	// tentanto encontrar r
 		}
 	}
 	
-	file.open("gaps.txt", std::ios::app);
+	file.open(saida+".txt", std::ios::app);
 	file<<"A equação é :" << eq<<endl;
 	file<<"Gaps : "<< gaps<<endl;
 	file.close();
 	return;
+}
+
+void remove_pseudo_primeiro(list<transistor*> &trans_list) //ao encontrar o primeiro gap, remove outros pseudos subsequentes
+{
+	list<transistor*>::iterator it = trans_list.begin();
+	
+	while(it != trans_list.end())
+	{
+		if((*it)->gate != 'Z')											//para de remover os primeiros assim que encontra input
+			break;
+		if(e_paralelo(*it))							//se estiver em paralelo, so remove
+		{
+			cout<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<"ESTA EM PARALELO"<<endl;
+			it = trans_list.erase(it);
+		}
+		else															//se estiver em serie, muda nomes do anterior e posterior
+		{
+			cout<<"SUBSTITUTINDO TODOS OS "<<(*it)->source<<"POR "<<(*it)->drain<<endl;
+			subs((*it)->source, (*it)->drain, trans_list);
+			it = trans_list.erase(it);
+		}	
+	}
+	
+	list<transistor*>::reverse_iterator it2 = trans_list.rbegin();				
+	while(it2 != trans_list.rend())
+	{
+		if((*it2)->gate != 'Z')														//para de remover os ultimos assim que encontra input
+			break;
+		if(e_paralelo(*it2))												//se estiver em paralelo, so remove
+		{
+																					// Convert reverse iterator to forward iterator
+			it2 = decltype(it2)(trans_list.erase(std::next(it2).base()));
+		}
+		
+		else																		//se estiver em serie, muda nomes do anterior e posterior
+		{
+			//cout<<"SUBSTITUTINDO TODOS OS "<<(*it)->source<<"POR "<<(*it)->drain<<" de tras pra frente"<<endl;
+			subs((*it2)->drain,(*it2)->source, trans_list);
+			auto to_erase = std::next(it2).base();								 	// Convert reverse iterator to forward iterator
+			it2 = decltype(it2)(trans_list.erase(std::next(it2).base()));
+		}	
+	}
+	
+	while(it != trans_list.end())													//remove pseudo do meio em serie, os em paralelo sao gaps e sao tratados no placement
+	{
+		if((*it)->gate == 'Z')
+		{
+			if(!e_paralelo(*it))
+			{
+				if((*it)->source > (*it)->drain)
+				{
+					cout<<"SUBSTITUTINDO TODOS OS "<<(*it)->source<<"POR "<<(*it)->drain<<endl;
+					subs((*it)->source, (*it)->drain, trans_list);
+					it = trans_list.erase(it);
+				}
+				else
+				{
+					cout<<"SUBSTITUTINDO TODOS OS "<<(*it)->source<<"POR "<<(*it)->drain<<endl;
+					subs((*it)->drain, (*it)->source, trans_list);
+					it = trans_list.erase(it);
+				}
+				
+			}
+			else	//encontrou um pseudo em paralelo, remove todos os pseudos imediatamente ao lado
+			{
+				it++;
+				while((*it)->gate == 'Z')
+				{
+					if(!e_paralelo(*it))
+					{
+						if((*it)->source > (*it)->drain)
+						{
+							cout<<"SUBSTITUTINDO TODOS OS "<<(*it)->source<<"POR "<<(*it)->drain<<endl;
+							subs((*it)->source, (*it)->drain, trans_list);
+							it = trans_list.erase(it);
+						}
+						else
+						{
+							cout<<"SUBSTITUTINDO TODOS OS "<<(*it)->source<<"POR "<<(*it)->drain<<endl;
+							subs((*it)->drain, (*it)->source, trans_list);
+							it = trans_list.erase(it);
+						}
+						
+					}
+					else
+					{
+									it = trans_list.erase(it);
+					}
+				}
+			}
+		}
+		else
+		{
+			it++;
+		}
+	}
+	
+	
 }
 
 void clean_stack(stack<int> &pilha)
