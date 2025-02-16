@@ -118,15 +118,15 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	faz_netlist_ordenado_p(trans_list_p, q_raiz, top, bott, '0', 0);
 	
 	
-	//remove_pseudo(trans_list_n);
+	remove_pseudo(trans_list_n);
 	
 	//TESTE só com n
-	remove_pseudo_primeiro(trans_list_n);
+	//remove_pseudo_primeiro(trans_list_n);
 	testa_gaps(trans_list_n, eq, "gaps_n");
 	
-	//remove_pseudo(trans_list_p);
+	remove_pseudo(trans_list_p);
 	//TESTE só com p
-	remove_pseudo_primeiro(trans_list_p);
+	//remove_pseudo_primeiro(trans_list_p);
 	testa_gaps(trans_list_p, eq, "gaps_p");
 	
 	list<transistor*>::reverse_iterator saida = trans_list_n.rbegin();
@@ -1011,7 +1011,30 @@ void remove_pseudo(list<transistor*> &trans_list)
 			}
 			else
 			{
-				it++;
+				it++;									//encontrou gap em paralelo, mantem e remove todos os outros que seguem sem interrupção
+				while((*it)->gate == 'Z')
+				{
+					if(!e_paralelo(*it))
+					{
+						if((*it)->source > (*it)->drain)
+						{
+							cout<<"SUBSTITUTINDO TODOS OS "<<(*it)->source<<"POR "<<(*it)->drain<<endl;
+							subs((*it)->source, (*it)->drain, trans_list);
+							it = trans_list.erase(it);
+						}
+						else
+						{
+							cout<<"SUBSTITUTINDO TODOS OS "<<(*it)->source<<"POR "<<(*it)->drain<<endl;
+							subs((*it)->drain, (*it)->source, trans_list);
+							it = trans_list.erase(it);
+						}
+						
+					}
+					else
+					{
+						it = trans_list.erase(it);
+					}
+				}
 			}
 		}
 		else
