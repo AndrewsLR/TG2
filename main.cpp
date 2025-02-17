@@ -66,6 +66,7 @@ void left_edge(list<transistor*> trans_list, queue<net> &nets);				//
 void testa_gaps(list<transistor*> trans_list, string eq, string saida);
 void remove_pseudo_primeiro(list<transistor*> &trans_list);
 void clean_stack(stack<int> &stack);
+void left_edge_full(list<transistor*> trans_list, queue<net> &nets); //faz left edge, primeiro calculando o comprimento de todas as nets, depois distribuindo por linhas
 
 node raiz;
 q_node* q_raiz;
@@ -170,7 +171,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	
 	escreve(trans_list_n);
 	escreve(trans_list_p);
-	left_edge(trans_list_n, nets_n);
+	left_edge_full(trans_list_n, nets_n);
 	if (!file.is_open()) {
     std::cerr << "Failed to open file." << std::endl;
 	}
@@ -1223,5 +1224,106 @@ void clean_stack(stack<int> &pilha)
 {
 	while(!pilha.empty())
 		pilha.pop();
+	return;
+}
+
+int intersecta(net net1, net net2) // Returns 1 if there is an intersection between nets
+{
+    // Check if the intervals overlap
+    if (net1.inicio <= net2.fim && net1.fim >= net2.inicio)
+        return 1;
+    else
+        return 0;
+}
+
+
+void left_edge_full(list<transistor*> trans_list, queue<net> &nets)	//
+{
+	int livre = 1;
+	int linha = 1;
+	net *temp;
+	list<transistor*>::iterator it;
+	list<net> nets_;										//nets antes de serem distribuidas pelas linhas							
+	for(int i = 0; i < net_number; i++)
+	{
+		int min = 9999;
+		int max = 1;
+		it = trans_list.begin();
+		
+		while(it != trans_list.end())
+		{
+			if((*it)->drain == "n"+to_string(i))											//se encontrar a net
+			{
+				if((*it)->pos < min)
+					min = (*it)->pos;
+				if((*it)->pos > max)
+					max = (*it)->pos;
+			}
+			
+			if((*it)->source == "n"+to_string(i))											//se encontrar a net
+			{
+				if((*it)->pos+1 < min)
+					min = (*it)->pos+1;
+				if((*it)->pos+1 > max)
+					max = (*it)->pos+1;
+			}
+			it++;
+		}
+		
+		if(min != 9999 && max != 1 && (max - min > 1))										// ignora min e max defaults e nets de distancia 1(drain e source podem dividir difusao)
+		{
+			if(livre <= min)
+			{
+				temp = new net("NET"+to_string(i), min, max, 0);
+				nets_.push_front(*temp);
+				//livre = max+1;
+			}
+			else
+			{
+				temp = new net("NET"+to_string(i), min, max, 0);
+				nets_.push_front(*temp);
+				//livre = max+1;
+			}
+		}
+		
+	}
+	
+	while (!nets_.empty()) 
+{
+    bool found = false;
+    list<net>::iterator it_nets = next(nets_.begin()); // Start from the second element
+
+    while (it_nets != nets_.end()) 
+    {
+        if (!intersecta(nets_.front(), *it_nets)) 
+        {
+            cout << "achou" << endl;
+            nets_.front().linha = linha;
+            it_nets->linha = linha;
+            nets.push(*it_nets);
+			nets.push(nets_.front());
+            it_nets = nets_.erase(it_nets); // Remove the element and get the next iterator
+            linha++;
+            found = true;
+            break; // Pair found, move to the next front element
+        } 
+        else 
+        {
+            ++it_nets;
+        }
+    }
+
+    // If no pair was found, just move the front element to the queue
+    if (!found) 
+    {
+        nets_.front().linha = linha;
+        nets.push(nets_.front());
+        linha++;
+    }
+	
+    nets_.pop_front();
+}
+
+	
 	return;
 }
