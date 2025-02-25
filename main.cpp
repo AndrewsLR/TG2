@@ -66,8 +66,8 @@ void left_edge(list<transistor*> trans_list, queue<net> &nets);				//
 void testa_gaps(list<transistor*> trans_list, string eq, string saida);
 void remove_pseudo_primeiro(list<transistor*> &trans_list);
 void clean_stack(stack<int> &stack);
-void left_edge_full(list<transistor*> trans_list, queue<net> &nets); //faz left edge, primeiro calculando o comprimento de todas as nets, depois distribuindo por linhas
-
+void left_edge_full(list<transistor*> trans_list, queue<net> &nets); //Calcula comprimento de todas as nets, combina 2 nets por linha
+void left_edge_true(list<transistor*> trans_list, queue<net> &nets); //Calcula comprimento de todas as nets, faz left edge
 node raiz;
 q_node* q_raiz;
 
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	
 	escreve(trans_list_n);
 	escreve(trans_list_p);
-	left_edge_full(trans_list_n, nets_n);
+	left_edge_true(trans_list_n, nets_n);
 	if (!file.is_open()) {
     std::cerr << "Failed to open file." << std::endl;
 	}
@@ -1237,7 +1237,7 @@ int intersecta(net net1, net net2) // Returns 1 if there is an intersection betw
 }
 
 
-void left_edge_full(list<transistor*> trans_list, queue<net> &nets)	//
+void left_edge_full(list<transistor*> trans_list, queue<net> &nets)	// tenta parear 2 nets na mesma linha
 {
 	int livre = 1;
 	int linha = 1;
@@ -1326,4 +1326,88 @@ void left_edge_full(list<transistor*> trans_list, queue<net> &nets)	//
 
 	
 	return;
+}
+
+void left_edge_true(list<transistor*> trans_list, queue<net> &nets)
+{
+	int livre = 1;
+	int linha = 1;
+	net *temp;
+	list<transistor*>::iterator it;
+	list<net> nets_;										//nets antes de serem distribuidas pelas linhas							
+	for(int i = 0; i < net_number; i++)
+	{
+		int min = 9999;
+		int max = 1;
+		it = trans_list.begin();
+		
+		while(it != trans_list.end())
+		{
+			if((*it)->drain == "n"+to_string(i))											//se encontrar a net
+			{
+				if((*it)->pos < min)
+					min = (*it)->pos;
+				if((*it)->pos > max)
+					max = (*it)->pos;
+			}
+			
+			if((*it)->source == "n"+to_string(i))											//se encontrar a net
+			{
+				if((*it)->pos+1 < min)
+					min = (*it)->pos+1;
+				if((*it)->pos+1 > max)
+					max = (*it)->pos+1;
+			}
+			it++;
+		}
+		
+		if(min != 9999 && max != 1 && (max - min > 1))										// ignora min e max defaults e nets de distancia 1(drain e source podem dividir difusao)
+		{
+			if(livre <= min)
+			{
+				temp = new net("NET"+to_string(i), min, max, 0);
+				nets_.push_front(*temp);
+				//livre = max+1;
+			}
+			else
+			{
+				temp = new net("NET"+to_string(i), min, max, 0);
+				nets_.push_front(*temp);
+				//livre = max+1;
+			}
+		}
+		
+	}
+	int watermark = 9999;
+	while (!nets_.empty()) 
+	{
+		bool found = false;
+		list<net>::iterator it_nets = nets_.begin();
+		list<net>::iterator it_left;						// guarda o net mais a esqueda de cada iteração
+		
+		while (it_nets != nets_.end()) 						// procura o net que inicia mais a esquerda
+		{
+			if (watermark > it_nets->inicio) 					//se estiver mais a esquerda
+			{
+				watermark = it_nets->inicio;
+				it_left = it_nets;
+				found = 1;
+			} 
+			it_nets++;
+		}
+		if(!found)								//se nao encontrou, cria nova linha e reseta watermak
+		{
+			linha++;
+			watermark = 9999;
+		}
+		
+		else												//se achou, coloca net na linha e remove da lista e adiciona na lista final
+		{
+			it_left->linha = linha;
+			watermark = it_left->fim;
+			nets.push(*it_left);
+			nets_.erase(it_left);
+		}
+	}
+	
 }
