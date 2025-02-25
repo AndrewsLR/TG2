@@ -245,29 +245,40 @@ void ordena(q_node *root)
 			pseudo->al = root->tipo;
 			pseudo->cor = 3;
 			root->filhos.push_front(pseudo);
+			root->cor = 2;
 		}
 		
-		
+		//PROBLEMA TA AQUI, FILHO SENDO PULADO
 		while(it != root->filhos.end())									//coloca pseudos para o inicio, guardando primeira posição livre em ordem
 		{
+
+			cout<<"AQUI"<<endl;
 			if((*it)->cor == 3)
 			{
-				root->filhos.insert(ordem,*it);
-				it = root->filhos.erase(it);
-				ordem++;
+				if(it != ordem)
+				{
+					root->filhos.insert(ordem,*it);
+					it = root->filhos.erase(it);
+				}
+				else
+				{
+					ordem++;
+					it++;
+				}
 			}
 			else
 				it++;
 		}
 		//cout<<"PASSOU LOOP1"<<endl;
-		//cout<<"ORDEM APONTA PARA: "<<(*ordem)->tipo<<endl;
 		it = ordem;
 		int flag_mix = 0;												//se ja encontrou um misto, proximo misto é invertido
 		while(it != root->filhos.end())									//coloca mistos
 		{
+			cout<< "Ordenando "<<root->tipo<<endl;
 			if((*it)->cor == 2 && flag_mix == 0)
 			{
-				cout<<"CAIU AQUI quando "<<(*it)->tipo<<endl;
+				cout<<"Primeiro filho misto "<<(*it)->tipo<<endl;
+				cout<<"Ultima entrada "<<(*it)->filhos.back()->tipo<<endl;
 				if(ordem != it)
 				{
 					root->filhos.insert(ordem,*it);
@@ -275,18 +286,20 @@ void ordena(q_node *root)
 				}
 				else
 				{
+					ordem++;
 					it++;
 				}
-				ordem++;
 				flag_mix = 1;
 				//MUDANÇA AQUI
 				list<q_node*>::iterator busca = it;
-				while(busca != root->filhos.end() && ordem != root->filhos.end())
+				while(busca != root->filhos.end() && ordem != root->filhos.end())			//insere todos os reais após ordenar o primeiro misto
 				{
-					cout<<"Buscando  "<<(*busca)->tipo<<"da cor "<<(*busca)->cor<<endl;
-					cout<<"Ordem  "<<(*ordem)->tipo<<endl;
+					cout<<"Procurando entradas para ordenar"<<endl;
+					//cout<<"Buscando  "<<(*busca)->tipo<<"da cor "<<(*busca)->cor<<endl;
+					//cout<<"Ordem  "<<(*ordem)->tipo<<endl;
 					if((*busca)->cor == 0)
 					{
+						cout<< "Achou entrada "<<(*busca)->tipo<<endl;
 						if(busca != ordem)
 						{
 							root->filhos.insert(ordem, *busca);
@@ -294,35 +307,42 @@ void ordena(q_node *root)
 							busca = root->filhos.erase(busca);
 							//cout<<"TESTANDO DEPOIS: "<<(*busca)->tipo<<endl;
 						}
-						ordem++;
-						busca++;
+						else
+						{
+							ordem++;
+							busca++;
+						}
+							
+						
 					}
 					else
 					{
 						busca++;
 					}
-					cout<<"Fim do loop"<<endl;
+					//cout<<"Fim do loop"<<endl;
 				}
-				it = ordem;
-				cout<<"Saiu do primeiro misto"<<endl;
+				//it = ordem;
+				//cout<<"Saiu do primeiro misto"<<endl;
 				if(it == root->filhos.end())
 					cout<<"IT APONTA PRO FIM"<<endl;
-				//deve procurar entradas reais para colocar após primeiro misto
 			}
 			else 
 			{
+				if(!(*it)->filhos.empty())
+					cout<<"Chegou logo antes de entrar "<<(*it)->tipo<< "Com ultimo filho "<<(*it)->filhos.back()->tipo<<endl;
 				if((*it)->cor == 2 && flag_mix == 1)
 				{
+					cout<<"Segundo misto "<<(*it)->tipo<<endl;
 					(*it)->cor = 1;
-					cout<<"ANTES DE INVERTER"<<endl;
 					inverte((*it)->filhos);
 					(*it)->filhos.reverse();
-					(*it)->cor = 1;
+					//(*it)->cor = 1;
 					//root->filhos.push_back(*it);
 					//it = root->filhos.erase(it);
 					
 					flag_mix = 0;
 					ordem++;
+					it++;
 				}
 				else
 					it++;
@@ -342,7 +362,7 @@ void ordena(q_node *root)
 					if((*it)->cor == 2 && (*it2)->cor == 1)
 						root->cor = 3;
 					else
-						if((*it)->cor == 3 && (*it2)->cor == 2)
+						if((*it)->cor == 3 && (*it2)->cor == 1)
 							root->cor = 3;
 						else
 							root->cor = 2;
@@ -384,13 +404,11 @@ void printLevelOrder(node *root) {		//da internet : https://www.geeksforgeeks.or
 void inverte(list<q_node*> &filhos)
 {
 	list<q_node*>::iterator it = filhos.begin();
-	cout<<"HAHAHAHAH"<<endl;
 	while(it != filhos.end())
 	{
 		(*it)->filhos.reverse();
 		if(!(*it)->filhos.empty())
 			inverte((*it)->filhos);
-		cout<<"CRASH?"<<endl;
 		it++;
 	}
 	return;
