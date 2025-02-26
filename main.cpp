@@ -1,7 +1,7 @@
 #include <queue>
 #include <fstream>
 #include "arv_bi_n.cpp"
-
+#define INT_MAX 2147483647
 using namespace std;
 
 typedef struct transistor{
@@ -67,7 +67,7 @@ void testa_gaps(list<transistor*> trans_list, string eq, string saida);
 void remove_pseudo_primeiro(list<transistor*> &trans_list);
 void clean_stack(stack<int> &stack);
 void left_edge_full(list<transistor*> trans_list, queue<net> &nets); //Calcula comprimento de todas as nets, combina 2 nets por linha
-void left_edge_true(list<transistor*> trans_list, queue<net> &nets); //Calcula comprimento de todas as nets, faz left edge
+int left_edge_true(list<transistor*> trans_list, queue<net> &nets); //Calcula comprimento de todas as nets, faz left edge
 node raiz;
 q_node* q_raiz;
 
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	
 	escreve(trans_list_n);
 	escreve(trans_list_p);
-	left_edge_true(trans_list_n, nets_n);
+	int linhas = left_edge_true(trans_list_n, nets_n);
 	if (!file.is_open()) {
     std::cerr << "Failed to open file." << std::endl;
 	}
@@ -181,6 +181,9 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 		file<<nets_n.front().nome<<" "<<nets_n.front().inicio<<"-"<<nets_n.front().fim<<" "<<"Linha "<<nets_n.front().linha<<endl;
 		nets_n.pop();
 	}
+	file.close();
+	file.open("saida.txt", std::ios::app);
+	file<<eq<<" "<<gaps_n + gaps_p<<" "<<linhas<<endl;
 	file.close();
 	return 0;
 }
@@ -1246,7 +1249,7 @@ void left_edge_full(list<transistor*> trans_list, queue<net> &nets)	// tenta par
 	list<net> nets_;										//nets antes de serem distribuidas pelas linhas							
 	for(int i = 0; i < net_number; i++)
 	{
-		int min = 9999;
+		int min = INT_MAX;
 		int max = 1;
 		it = trans_list.begin();
 		
@@ -1328,7 +1331,7 @@ void left_edge_full(list<transistor*> trans_list, queue<net> &nets)	// tenta par
 	return;
 }
 
-void left_edge_true(list<transistor*> trans_list, queue<net> &nets)
+int left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 {
 	int livre = 1;
 	int linha = 1;
@@ -1337,7 +1340,7 @@ void left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 	list<net> nets_;										//nets antes de serem distribuidas pelas linhas							
 	for(int i = 0; i < net_number; i++)
 	{
-		int min = 9999;
+		int min = INT_MAX;
 		int max = 1;
 		it = trans_list.begin();
 		
@@ -1378,7 +1381,7 @@ void left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 		}
 		
 	}
-	int watermark = 9999;
+	int watermark = INT_MAX;
 	while (!nets_.empty()) 
 	{
 		bool found = false;
@@ -1398,7 +1401,7 @@ void left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 		if(!found)								//se nao encontrou, cria nova linha e reseta watermak
 		{
 			linha++;
-			watermark = 9999;
+			watermark = INT_MAX;
 		}
 		
 		else												//se achou, coloca net na linha e remove da lista e adiciona na lista final
@@ -1409,5 +1412,5 @@ void left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 			nets_.erase(it_left);
 		}
 	}
-	
+	return linha;
 }
