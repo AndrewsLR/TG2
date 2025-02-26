@@ -248,7 +248,7 @@ void ordena(q_node *root)
 			root->cor = 2;
 		}
 		
-		//PROBLEMA TA AQUI, FILHO SENDO PULADO
+
 		while(it != root->filhos.end())									//coloca pseudos para o inicio, guardando primeira posição livre em ordem
 		{
 
@@ -257,8 +257,22 @@ void ordena(q_node *root)
 			{
 				if(it != ordem)
 				{
-					root->filhos.insert(ordem,*it);
-					it = root->filhos.erase(it);
+					//root->filhos.insert(ordem,*it);
+					//it = root->filhos.erase(it);
+					//q_node temp;
+					//temp.tipo = (*ordem)->tipo;											//usando essas copias com temp da erro em (a*(b+c*(d+e+f*g)))
+					//temp.cor = (*ordem)->cor;
+					//temp.filhos = (*ordem)->filhos;
+
+					//(*ordem)->tipo = (*it)->tipo;
+					//(*ordem)->cor = (*it)->cor;
+					//(*ordem)->filhos = (*it)->filhos;
+
+					//(*it)->tipo = temp.tipo;
+					//(*it)->cor = temp.cor;
+					//(*it)->filhos = temp.filhos;
+					ordem++;
+					it++;
 				}
 				else
 				{
@@ -271,18 +285,45 @@ void ordena(q_node *root)
 		}
 		//cout<<"PASSOU LOOP1"<<endl;
 		it = ordem;
-		int flag_mix = 0;												//se ja encontrou um misto, proximo misto é invertido
+		int flag_mix = 0;
+		
+		while(it != root->filhos.end())
+		{
+			cout<<"HAHA"<<endl;
+			it++;
+		}
+		it = ordem;																	//se ja encontrou um misto, proximo misto é invertido
 		while(it != root->filhos.end())									//coloca mistos
 		{
 			cout<< "Ordenando "<<root->tipo<<endl;
+			cout<<"IMEDIATAMENTE DEPOIS"<<endl;
+			if(it == root->filhos.end())
+					cout<<"IT APONTA PRO FIM"<<endl;
+			//cout<<"a cor do it e "<<(*it)->cor<<endl; // IT NAO E ACESSAVEL AQUI
 			if((*it)->cor == 2 && flag_mix == 0)
 			{
-				cout<<"Primeiro filho misto "<<(*it)->tipo<<endl;
-				cout<<"Ultima entrada "<<(*it)->filhos.back()->tipo<<endl;
+				cout<<"TESTE 1"<<endl;
+				//cout<<"Primeiro filho misto "<<(*it)->tipo<<endl;
+				//cout<<"Ultima entrada "<<(*it)->filhos.back()->tipo<<endl;
 				if(ordem != it)
 				{
-					root->filhos.insert(ordem,*it);
-					it = root->filhos.erase(it);
+					//root->filhos.insert(ordem,*it);									//Usando insert e erase, da erro em (a*(b+c+d*e+f*g*h))
+					//it = root->filhos.erase(it);
+					//q_node temp;
+					//temp.tipo = (*ordem)->tipo;											//usando essas copias com temp da erro em (a*(b+c*(d+e+f*g)))
+					//temp.cor = (*ordem)->cor;
+					//temp.filhos = (*ordem)->filhos;
+
+					//(*ordem)->tipo = (*it)->tipo;
+					//(*ordem)->cor = (*it)->cor;
+					//(*ordem)->filhos = (*it)->filhos;
+
+					//(*it)->tipo = temp.tipo;
+					//(*it)->cor = temp.cor;
+					//(*it)->filhos = temp.filhos;
+					it++;
+					ordem++;
+					cout<<"ELEMENTO APAGADO"<<endl;
 				}
 				else
 				{
@@ -322,12 +363,13 @@ void ordena(q_node *root)
 					//cout<<"Fim do loop"<<endl;
 				}
 				//it = ordem;
-				//cout<<"Saiu do primeiro misto"<<endl;
+				cout<<"Saiu do primeiro misto"<<endl;
 				if(it == root->filhos.end())
 					cout<<"IT APONTA PRO FIM"<<endl;
 			}
 			else 
 			{
+				cout<<"ENTOU NO ELSE"<<endl;
 				if(!(*it)->filhos.empty())
 					cout<<"Chegou logo antes de entrar "<<(*it)->tipo<< "Com ultimo filho "<<(*it)->filhos.back()->tipo<<endl;
 				if((*it)->cor == 2 && flag_mix == 1)
@@ -345,12 +387,16 @@ void ordena(q_node *root)
 					it++;
 				}
 				else
+				{
 					it++;
+					cout<<"INCREMENTOU IT NO ELSE"<<endl;
+				}	
 			}
-			
-				
+			cout<<"FIM DA ITERACAO"<<endl;
+			if(it == root->filhos.end())
+					cout<<"IT APONTA PRO FIM"<<endl;
 		}
-		//cout<<"PASSOU LOOP2"<<endl;
+		cout<<"PASSOU LOOP2"<<endl;
 		it = root->filhos.begin();
 		list<q_node*>::reverse_iterator it2 = root->filhos.rbegin();																//define cor do nodo
 		if((*it)->cor == (*it2)->cor)									//se forem iguais, so pode ser branco (3) ou preto (0)
