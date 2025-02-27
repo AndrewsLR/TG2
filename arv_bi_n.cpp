@@ -257,6 +257,9 @@ void ordena(q_node *root)
 			{
 				if(it != ordem)
 				{
+					auto it_next = next(it);
+					root->filhos.splice(ordem,root->filhos,it);
+					it = it_next;
 					//root->filhos.insert(ordem,*it);
 					//it = root->filhos.erase(it);
 					//q_node temp;
@@ -271,8 +274,8 @@ void ordena(q_node *root)
 					//(*it)->tipo = temp.tipo;
 					//(*it)->cor = temp.cor;
 					//(*it)->filhos = temp.filhos;
-					ordem++;
-					it++;
+					//ordem++;
+					//it++;
 				}
 				else
 				{
@@ -307,6 +310,9 @@ void ordena(q_node *root)
 				//cout<<"Ultima entrada "<<(*it)->filhos.back()->tipo<<endl;
 				if(ordem != it)
 				{
+					auto it_next = next(it);
+					root->filhos.splice(ordem,root->filhos,it);
+					it = it_next;
 					//root->filhos.insert(ordem,*it);									//Usando insert e erase, da erro em (a*(b+c+d*e+f*g*h))
 					//it = root->filhos.erase(it);
 					//q_node temp;
@@ -321,8 +327,8 @@ void ordena(q_node *root)
 					//(*it)->tipo = temp.tipo;
 					//(*it)->cor = temp.cor;
 					//(*it)->filhos = temp.filhos;
-					it++;
-					ordem++;
+					//it++;
+					//ordem++;
 					cout<<"ELEMENTO APAGADO"<<endl;
 				}
 				else
@@ -343,9 +349,12 @@ void ordena(q_node *root)
 						cout<< "Achou entrada "<<(*busca)->tipo<<endl;
 						if(busca != ordem)
 						{
-							root->filhos.insert(ordem, *busca);
+							auto it_next = next(busca);
+							root->filhos.splice(ordem,root->filhos,busca);
+							busca = it_next;
+							//root->filhos.insert(ordem, *busca);
 							//cout<<"TESTANDO ANTES: "<<(*busca)->tipo<<endl;
-							busca = root->filhos.erase(busca);
+							//busca = root->filhos.erase(busca);
 							//cout<<"TESTANDO DEPOIS: "<<(*busca)->tipo<<endl;
 						}
 						else
