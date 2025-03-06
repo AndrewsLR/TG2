@@ -95,6 +95,17 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	file.close();
 	
 	//faz binaria
+	if(eq.at(0) != '(')
+	{
+		if(eq.at(0) == 'a')
+		{
+			cout<<"INPUT a"<<endl;
+			file.open("saida.txt", std::ios::app);
+			file<<eq<<" "<<"0"<<" "<<"0"<<endl;
+			file.close();
+		}
+		exit(0);
+	}
 	quebra_portas(eq);
 	pinta_arv(&raiz);
 	cout<<"Arvore binaria:"<<endl;
@@ -1382,35 +1393,40 @@ int left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 		
 	}
 	int watermark = INT_MAX;
-	while (!nets_.empty()) 
+	if(nets_.empty())
+		return 0;
+	else
 	{
-		bool found = false;
-		list<net>::iterator it_nets = nets_.begin();
-		list<net>::iterator it_left;						// guarda o net mais a esqueda de cada iteração
-		
-		while (it_nets != nets_.end()) 						// procura o net que inicia mais a esquerda
+		while (!nets_.empty()) 
 		{
-			if (watermark > it_nets->inicio) 					//se estiver mais a esquerda
+			bool found = false;
+			list<net>::iterator it_nets = nets_.begin();
+			list<net>::iterator it_left;						// guarda o net mais a esqueda de cada iteração
+			
+			while (it_nets != nets_.end()) 						// procura o net que inicia mais a esquerda
 			{
-				watermark = it_nets->inicio;
-				it_left = it_nets;
-				found = 1;
-			} 
-			it_nets++;
+				if (watermark > it_nets->inicio) 					//se estiver mais a esquerda
+				{
+					watermark = it_nets->inicio;
+					it_left = it_nets;
+					found = 1;
+				} 
+				it_nets++;
+			}
+			if(!found)								//se nao encontrou, cria nova linha e reseta watermak
+			{
+				linha++;
+				watermark = INT_MAX;
+			}
+			
+			else												//se achou, coloca net na linha e remove da lista e adiciona na lista final
+			{
+				it_left->linha = linha;
+				watermark = it_left->fim;
+				nets.push(*it_left);
+				nets_.erase(it_left);
+			}
 		}
-		if(!found)								//se nao encontrou, cria nova linha e reseta watermak
-		{
-			linha++;
-			watermark = INT_MAX;
-		}
-		
-		else												//se achou, coloca net na linha e remove da lista e adiciona na lista final
-		{
-			it_left->linha = linha;
-			watermark = it_left->fim;
-			nets.push(*it_left);
-			nets_.erase(it_left);
-		}
+		return linha;
 	}
-	return linha;
 }
