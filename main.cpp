@@ -182,6 +182,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	
 	escreve(trans_list_n);
 	escreve(trans_list_p);
+	trans_list_n.splice(trans_list_n.end(),trans_list_p);
 	int linhas = left_edge_true(trans_list_n, nets_n);
 	if (!file.is_open()) {
     std::cerr << "Failed to open file." << std::endl;
@@ -1357,25 +1358,28 @@ int left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 		
 		while(it != trans_list.end())
 		{
-			if((*it)->drain == "n"+to_string(i))											//se encontrar a net
+			if((*it)->gate != 'Z')
 			{
-				if((*it)->pos < min)
-					min = (*it)->pos;
-				if((*it)->pos > max)
-					max = (*it)->pos;
-			}
-			
-			if((*it)->source == "n"+to_string(i))											//se encontrar a net
-			{
-				if((*it)->pos+1 < min)
-					min = (*it)->pos+1;
-				if((*it)->pos+1 > max)
-					max = (*it)->pos+1;
+				if((*it)->drain == "n"+to_string(i))											//se encontrar a net
+				{
+					if((*it)->pos < min)
+						min = (*it)->pos;
+					if((*it)->pos > max)
+						max = (*it)->pos;
+				}
+				
+				if((*it)->source == "n"+to_string(i))											//se encontrar a net
+				{
+					if((*it)->pos+1 < min)
+						min = (*it)->pos+1;
+					if((*it)->pos+1 > max)
+						max = (*it)->pos+1;
+				}
 			}
 			it++;
 		}
 		
-		if(min != 9999 && max != 1 && (max - min > 1))										// ignora min e max defaults e nets de distancia 1(drain e source podem dividir difusao)
+		if(min != INT_MAX && max != 1 && (max - min > 1))										// ignora min e max defaults e nets de distancia 1(drain e source podem dividir difusao)
 		{
 			if(livre <= min)
 			{
@@ -1392,7 +1396,23 @@ int left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 		}
 		
 	}
-	int watermark = INT_MAX;
+	int watermark = INT_MAX;										//quebrar em uma função? isso precisa ser executado toda nova linha
+	list<net>::iterator it_nets = nets_.begin();
+	list<net>::iterator it_left;
+	while (it_nets != nets_.end()) 						// procura o net que inicia mais proximo do watermark, sendo maior que ele
+			{
+				//cout<<"NET "<<it_nets->nome<<"com inicio em "<<it_nets->inicio<<endl;
+				if (watermark > it_nets->inicio) 				
+				{
+					watermark = it_nets->inicio;
+					it_left = it_nets;
+				} 
+				it_nets++;
+			}
+			it_left->linha = linha;
+			watermark = it_left->fim;
+			nets.push(*it_left);
+			nets_.erase(it_left);
 	if(nets_.empty())
 		return 0;
 	else
@@ -1401,11 +1421,12 @@ int left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 		{
 			bool found = false;
 			list<net>::iterator it_nets = nets_.begin();
-			list<net>::iterator it_left;						// guarda o net mais a esqueda de cada iteração
+			list<net>::iterator it_left;						// guarda o net mais a esquerda de cada iteração
 			
-			while (it_nets != nets_.end()) 						// procura o net que inicia mais a esquerda
+			while (it_nets != nets_.end()) 						// procura o net que inicia mais proximo do watermark, sendo maior que ele
 			{
-				if (watermark > it_nets->inicio) 					//se estiver mais a esquerda
+				//cout<<"NET "<<it_nets->nome<<"com inicio em "<<it_nets->inicio<<endl;
+				if (watermark < it_nets->inicio) 				
 				{
 					watermark = it_nets->inicio;
 					it_left = it_nets;
@@ -1413,7 +1434,8 @@ int left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 				} 
 				it_nets++;
 			}
-			if(!found)								//se nao encontrou, cria nova linha e reseta watermak
+
+			if(!found)											//se nao encontrou, cria nova linha e reseta watermark
 			{
 				linha++;
 				watermark = INT_MAX;
@@ -1425,7 +1447,9 @@ int left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 				watermark = it_left->fim;
 				nets.push(*it_left);
 				nets_.erase(it_left);
+				found = 0;
 			}
+			//cout<<linha<<endl;
 		}
 		return linha;
 	}
