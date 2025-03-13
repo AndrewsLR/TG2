@@ -122,13 +122,13 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	//faz netlist
 	cout<<"Netlist Pulldown:"<<endl;
 	faz_netlist_ordenado(trans_list_n, q_raiz, bott, top, '0', 1);
-	
+	//string saida_n = to_string(net_number - 1);
 	clean_stack(bott);
 	clean_stack(top);
 	
 	cout<<endl<<"Netlist Pullup:"<<endl;
 	faz_netlist_ordenado_p(trans_list_p, q_raiz, top, bott, '0', 0);
-	
+	//string saida_p = to_string(net_number - 1);
 	
 	remove_pseudo(trans_list_n);
 	
@@ -142,9 +142,19 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	testa_gaps(trans_list_p, eq, "gaps_p");
 	
 	list<transistor*>::reverse_iterator saida = trans_list_n.rbegin();
-	string saida_n = (*saida)->source;
+	string saida_n;
+	if((*saida)->al == '*')
+		saida_n = (*saida)->source;
+	else
+		saida_n = (*saida)->drain;
+	cout<<"SAIDA N EM "<<saida_n<<endl;
 	saida = trans_list_p.rbegin();
-	string saida_p = (*saida)->source;
+	string saida_p;
+	if((*saida)->al == '+')
+		saida_p = (*saida)->source;
+	else
+		saida_p = (*saida)->drain;
+	cout<<"SAIDA P EM "<<saida_p<<endl;
 	subs(saida_p,saida_n, trans_list_p);
 	
 	cout<<endl<<"Pulldown apos remover pseudos das bordas:"<<endl;
@@ -1400,6 +1410,44 @@ int left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 	list<net>::iterator it_nets = nets_.begin();
 	list<net>::iterator it_left;
 	while (it_nets != nets_.end()) 						// procura o net que inicia mais proximo do watermark, sendo maior que ele
+	{
+		//cout<<"NET "<<it_nets->nome<<"com inicio em "<<it_nets->inicio<<endl;
+		if (watermark > it_nets->inicio) 				
+		{
+			watermark = it_nets->inicio;
+			it_left = it_nets;
+		} 
+		it_nets++;
+	}
+	it_left->linha = linha;
+	watermark = it_left->fim;
+	nets.push(*it_left);
+	nets_.erase(it_left);
+
+	while (!nets_.empty()) 
+	{
+		bool found = false;
+		list<net>::iterator it_nets = nets_.begin();
+		list<net>::iterator it_left;						// guarda o net mais a esquerda de cada iteração
+		
+		while (it_nets != nets_.end()) 						// procura o net que inicia mais proximo do watermark, sendo maior que ele
+		{
+			//cout<<"NET "<<it_nets->nome<<"com inicio em "<<it_nets->inicio<<endl;
+			if (watermark < it_nets->inicio) 				
+			{
+				watermark = it_nets->inicio;
+				it_left = it_nets;
+				found = 1;
+			} 
+			it_nets++;
+		}
+			if(!found)											//se nao encontrou, cria nova linha e reseta watermark
+		{
+			linha++;
+			watermark = INT_MAX;
+			list<net>::iterator it_nets = nets_.begin();
+			list<net>::iterator it_left;
+			while (it_nets != nets_.end()) 						// procura o net que inicia mais proximo do watermark, sendo maior que ele
 			{
 				//cout<<"NET "<<it_nets->nome<<"com inicio em "<<it_nets->inicio<<endl;
 				if (watermark > it_nets->inicio) 				
@@ -1413,44 +1461,17 @@ int left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 			watermark = it_left->fim;
 			nets.push(*it_left);
 			nets_.erase(it_left);
-	if(nets_.empty())
-		return 0;
-	else
-	{
-		while (!nets_.empty()) 
-		{
-			bool found = false;
-			list<net>::iterator it_nets = nets_.begin();
-			list<net>::iterator it_left;						// guarda o net mais a esquerda de cada iteração
-			
-			while (it_nets != nets_.end()) 						// procura o net que inicia mais proximo do watermark, sendo maior que ele
-			{
-				//cout<<"NET "<<it_nets->nome<<"com inicio em "<<it_nets->inicio<<endl;
-				if (watermark < it_nets->inicio) 				
-				{
-					watermark = it_nets->inicio;
-					it_left = it_nets;
-					found = 1;
-				} 
-				it_nets++;
-			}
-
-			if(!found)											//se nao encontrou, cria nova linha e reseta watermark
-			{
-				linha++;
-				watermark = INT_MAX;
-			}
-			
-			else												//se achou, coloca net na linha e remove da lista e adiciona na lista final
-			{
-				it_left->linha = linha;
-				watermark = it_left->fim;
-				nets.push(*it_left);
-				nets_.erase(it_left);
-				found = 0;
-			}
-			//cout<<linha<<endl;
 		}
-		return linha;
+		
+		else												//se achou, coloca net na linha e remove da lista e adiciona na lista final
+		{
+			it_left->linha = linha;
+			watermark = it_left->fim;
+			nets.push(*it_left);
+			nets_.erase(it_left);
+			found = 0;
+		}
+		//cout<<linha<<endl;
 	}
+	return linha;
 }
