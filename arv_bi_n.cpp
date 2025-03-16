@@ -247,6 +247,11 @@ void ordena(q_node *root)
 			root->filhos.push_front(pseudo);
 			root->cor = 2;
 		}
+		list<q_node*>::iterator set_al = root->filhos.begin();								//guarda operacao em cada filho
+		for(set_al = root->filhos.begin(); set_al != root->filhos.end(); set_al++)
+		{
+			(*set_al)->al = root->tipo;
+		}
 		
 
 		while(it != root->filhos.end())									//coloca pseudos para o inicio, guardando primeira posição livre em ordem
