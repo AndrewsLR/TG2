@@ -150,32 +150,29 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	{
 		string teste = menor_net((*saida)->source,(*saida)->drain);
 		cout<<"VOLTOU DOS NETS"<<endl;
-		if((*saida)->source == teste)
+		if((*saida)->source == teste)											//se o net de source for o menor, esta voltando, nao conectado a saida
 		{
-			while((*saida)->al != '+' && saida != trans_list_n.rend())
-			{
-				saida++;
-				cout<<"Transistor "<<(*saida)->gate<<" operacao "<<(*saida)->al<<endl;
-			}
-
-			cout<<"depois do while"<<endl;
-			if((*saida)->ordem == 1)
+			if((*saida)->ordem == 1)											//deve procurar ultimno transistor na ordem contraria
 			{
 				saida_n = (*saida)->source;
+				cout<<"SAIDA N ORDEM "<<(*saida)->ordem<<endl;
 			}
 			else
 			{
 				saida_n = (*saida)->drain;
+				cout<<"SAIDA N ORDEM "<<(*saida)->ordem<<endl;
 			}
 
 		}
 		else
+		{
 			saida_n = (*saida)->source;
-		cout<<"LOGO ANTES DE ESCREVER"<<endl;
-		cout<<"AQUI ERA * e saida em "<<saida_n<<" com ordem "<<(*saida)->ordem<<endl;
+			cout<<"SAIDA N ORDEM "<<(*saida)->ordem<<endl;
+		}
 	}
 	else
 	{
+		cout<<"SAIDA N ORDEM "<<(*saida)->ordem<<endl;
 		if((*saida)->ordem == 0)
 		{
 			saida_n = (*saida)->source;
@@ -195,11 +192,6 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 		string teste = menor_net((*saida)->source,(*saida)->drain);
 		if((*saida)->source == teste)
 		{
-			while((*saida)->al != '*')
-			{
-				saida++;
-			}
-
 			if((*saida)->ordem == 1)
 			{
 				saida_n = (*saida)->source;
@@ -541,6 +533,7 @@ void faz_netlist_ordenado(list<transistor*> &trans_list, q_node*& root, stack<in
 						}
 						cout<<"TROCA: ";
 						cout<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<endl;
+						(*it)->ordem = 1;
 						if(!top.empty())
 							top.pop();
 						if(ordem == 0)																							//faz o zig-zag quando portas estiverem em paralelo
@@ -566,6 +559,7 @@ void faz_netlist_ordenado(list<transistor*> &trans_list, q_node*& root, stack<in
 							}
 							cout<<"TROCA: ";
 							cout<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<endl;
+							(*it)->ordem = 1;
 							if(ordem == 0)																							//faz o zig-zag quando portas estiverem em paralelo
 								ordem = 1;
 							else
@@ -1591,36 +1585,35 @@ string menor_net(string source, string drain)
 
 	if(isdigit(source[source.length()-2]))				//se houverem 2 digitos de numero de net, junta ambos em um int
 	{
-		cout<<"O SOURCE E"<<source<<endl;
+		//cout<<"O SOURCE E"<<source<<endl;
 		net_s = string(1,source[source.length()-2]) + source[source.length()-1];
-		cout<<"TENTANDO CONVERTER PARA INT1 "<<net_s<<endl;
+		//cout<<"TENTANDO CONVERTER PARA INT1 "<<net_s<<endl;
 		num_s = stoi(net_s);
-		cout<<"TESTE NET DE NUMERO "<<num_s<<endl;
+		//cout<<"TESTE NET DE NUMERO "<<num_s<<endl;
 	}
 	else
 	{
 		net_s = source[source.length()-1];
-		cout<<"TENTANDO CONVERTER PARA INT1 "<<net_s<<endl;
+		//cout<<"TENTANDO CONVERTER PARA INT1 "<<net_s<<endl;
 		num_s = stoi(net_s);
-		cout<<"TESTE NET DE NUMERO "<<num_s<<endl;
+		//cout<<"TESTE NET DE NUMERO "<<num_s<<endl;
 	}
 
 	if(isdigit(drain[drain.length()-2]))				//se houverem 2 digitos de numero de net, junta ambos em um int
 	{
 		net_d = string(1,drain[drain.length()-2]) + drain[drain.length()-1];
-		cout<<"TENTANDO CONVERTER PARA INT3 "<<net_d<<endl;
+		//cout<<"TENTANDO CONVERTER PARA INT3 "<<net_d<<endl;
 		num_d = stoi(net_d);
-		cout<<"TESTE NET DE NUMERO "<<num_d<<endl;
+		//cout<<"TESTE NET DE NUMERO "<<num_d<<endl;
 	}
 	else
 	{
-		cout<<"O DRAIN E"<<drain<<endl;
+		//cout<<"O DRAIN E"<<drain<<endl;
 		net_d = drain[drain.length()-1];
-		cout<<"TENTANDO CONVERTER PARA INT4 "<<net_d<<endl;
+		//cout<<"TENTANDO CONVERTER PARA INT4 "<<net_d<<endl;
 		num_d = stoi(net_d);
-		cout<<"TESTE NET DE NUMERO "<<num_d<<endl;
+		//cout<<"TESTE NET DE NUMERO "<<num_d<<endl;
 	}
-	cout<<"Terminou de chegar nets"<<endl;
 	if(num_s < num_d)														//retornar o "menor" net
 		return source;
 	else
