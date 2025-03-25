@@ -64,13 +64,13 @@ string menor_net(string source, string drain);																//recebe duas nets
 //binaria
 void escreve(list<transistor*> trans_list);	//concerta a saida (remove net a mais criado quando expressão mas externa e +) e escreve em .spice
 int place_transistores(list<transistor*> &trans_list);						// faz o placement dos transistores (escreve posições nas transistor chains
-void left_edge(list<transistor*> trans_list, queue<net> &nets);				//
 
 void testa_gaps(list<transistor*> trans_list, string eq, string saida);
 void remove_pseudo_primeiro(list<transistor*> &trans_list);
 void clean_stack(stack<int> &stack);
-void left_edge_full(list<transistor*> trans_list, queue<net> &nets); //Calcula comprimento de todas as nets, combina 2 nets por linha
 int left_edge_true(list<transistor*> trans_list, queue<net> &nets); //Calcula comprimento de todas as nets, faz left edge
+int conta_gaps(q_node *root);//conta o número de gaps, considerando que cada "slice" ocorre tanto na difusão do pull-up, quanto do pull-down(gaps na mesma posição nao na verade apenas 1)
+
 node raiz;
 q_node* q_raiz;
 
@@ -137,12 +137,12 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	
 	//TESTE só com n
 	//remove_pseudo_primeiro(trans_list_n);
-	testa_gaps(trans_list_n, eq, "gaps_n");
+	//testa_gaps(trans_list_n, eq, "gaps_n");
 	
 	remove_pseudo(trans_list_p);
 	//TESTE só com p
 	//remove_pseudo_primeiro(trans_list_p);
-	testa_gaps(trans_list_p, eq, "gaps_p");
+	//testa_gaps(trans_list_p, eq, "gaps_p");
 	
 	//DECIDE SAIDAS - Se o ultimo transistor esta em paralelo, saida esta em drain ou source(olhar ordem), se esta em serie, se o net de source foir maior, ele e a saida?, se for o menor, ele esta voltando, procurar ultimo transistor OR e olhar ordem
 	list<transistor*>::reverse_iterator saida = trans_list_n.rbegin();
@@ -257,6 +257,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	escreve(trans_list_n);
 	escreve(trans_list_p);
 	trans_list_n.splice(trans_list_n.end(),trans_list_p);
+	int num_gaps = conta_gaps(trans_list_n);
 	int linhas = left_edge_true(trans_list_n, nets_n);
 	if (!file.is_open()) {
     std::cerr << "Failed to open file." << std::endl;
@@ -269,8 +270,20 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	}
 	file.close();
 	file.open("saida.txt", std::ios::app);
-	file<<eq<<" "<<gaps_n + gaps_p<<" "<<linhas<<endl;
+	file<<eq<<" "<<num_gaps<<" "<<linhas<<endl;
 	file.close();
+
+	list<transistor*>::iterator it = trans_list_n.begin();
+	cout<<"LISTA FINAL:"<<endl;
+	while(it != trans_list_n.end())
+	{
+		if((*it)->tipo == 'n')
+		cout<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<" " <<"GND "<<(*it)->tipo<<"fet"<<endl;
+		if((*it)->tipo == 'p')
+		cout<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<" " <<"VDD "<<(*it)->tipo<<"fet"<<endl;
+		it++;
+	}
+
 	return 0;
 }
 
@@ -338,61 +351,6 @@ int place_transistores(list<transistor*> &trans_list)
 	}
 	
 	return gaps;
-}
-
-void left_edge(list<transistor*> trans_list, queue<net> &nets)
-{
-	int livre = 1;
-	int linha = 1;
-	net *temp;
-	list<transistor*>::iterator it;
-	for(int i = 0; i < net_number; i++)
-	{
-		int min = 9999;
-		int max = 0;
-		it = trans_list.begin();
-		
-		while(it != trans_list.end())
-		{
-			if((*it)->drain == "n"+to_string(i))											//se encontrar a net
-			{
-				if((*it)->pos < min)
-					min = (*it)->pos;
-				if((*it)->pos > max)
-					max = (*it)->pos;
-			}
-			
-			if((*it)->source == "n"+to_string(i))											//se encontrar a net
-			{
-				if((*it)->pos+1 < min)
-					min = (*it)->pos+1;
-				if((*it)->pos+1 > max)
-					max = (*it)->pos+1;
-			}
-			it++;
-		}
-		
-		if(min != 9999 && max != 0 && (max - min > 1))										// ignora min e max defaults e nets de distancia 1(drain e source podem dividir difusao)
-		{
-			if(livre <= min)
-			{
-				temp = new net("NET"+to_string(i), min, max, linha);
-				nets.push(*temp);
-				livre = max+1;
-			}
-			else
-			{
-				linha++;
-				temp = new net("NET"+to_string(i), min, max, linha);
-				nets.push(*temp);
-				livre = max+1;
-			}
-		}
-		
-	}
-	
-	
-	return;
 }
 
 void faz_netlist_ordenado(list<transistor*> &trans_list, q_node*& root, stack<int> &bott, stack<int> &top, char op, int ordem)
@@ -1367,98 +1325,6 @@ int intersecta(net net1, net net2) // Returns 1 if there is an intersection betw
         return 1;
     else
         return 0;
-}
-
-
-void left_edge_full(list<transistor*> trans_list, queue<net> &nets)	// tenta parear 2 nets na mesma linha
-{
-	int livre = 1;
-	int linha = 1;
-	net *temp;
-	list<transistor*>::iterator it;
-	list<net> nets_;										//nets antes de serem distribuidas pelas linhas							
-	for(int i = 0; i < net_number; i++)
-	{
-		int min = INT_MAX;
-		int max = 1;
-		it = trans_list.begin();
-		
-		while(it != trans_list.end())
-		{
-			if((*it)->drain == "n"+to_string(i))											//se encontrar a net
-			{
-				if((*it)->pos < min)
-					min = (*it)->pos;
-				if((*it)->pos > max)
-					max = (*it)->pos;
-			}
-			
-			if((*it)->source == "n"+to_string(i))											//se encontrar a net
-			{
-				if((*it)->pos+1 < min)
-					min = (*it)->pos+1;
-				if((*it)->pos+1 > max)
-					max = (*it)->pos+1;
-			}
-			it++;
-		}
-		
-		if(min != 9999 && max != 1 && (max - min > 1))										// ignora min e max defaults e nets de distancia 1(drain e source podem dividir difusao)
-		{
-			if(livre <= min)
-			{
-				temp = new net("NET"+to_string(i), min, max, 0);
-				nets_.push_front(*temp);
-				//livre = max+1;
-			}
-			else
-			{
-				temp = new net("NET"+to_string(i), min, max, 0);
-				nets_.push_front(*temp);
-				//livre = max+1;
-			}
-		}
-		
-	}
-	
-	while (!nets_.empty()) 
-{
-    bool found = false;
-    list<net>::iterator it_nets = next(nets_.begin()); // Start from the second element
-
-    while (it_nets != nets_.end()) 
-    {
-        if (!intersecta(nets_.front(), *it_nets)) 
-        {
-           // cout << "achou" << endl;
-            nets_.front().linha = linha;
-            it_nets->linha = linha;
-            nets.push(*it_nets);
-			nets.push(nets_.front());
-            it_nets = nets_.erase(it_nets); // Remove the element and get the next iterator
-            linha++;
-            found = true;
-            break; // Pair found, move to the next front element
-        } 
-        else 
-        {
-            ++it_nets;
-        }
-    }
-
-    // If no pair was found, just move the front element to the queue
-    if (!found) 
-    {
-        nets_.front().linha = linha;
-        nets.push(nets_.front());
-        linha++;
-    }
-	
-    nets_.pop_front();
-}
-
-	
-	return;
 }
 
 int left_edge_true(list<transistor*> trans_list, queue<net> &nets)

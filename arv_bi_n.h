@@ -35,3 +35,4 @@ void converte(node* root, q_node *&new_root);
 void percorreEImprime(q_node* &root, const std::string& prefix = "", bool isLast = true);
 void ordena(q_node *root);
 void inverte(list<q_node*> &filhos);
+int conta_gaps(q_node *root,int gap_count);

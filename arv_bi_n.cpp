@@ -473,3 +473,19 @@ void inverte(list<q_node*> &filhos)
 	}
 	return;
 }
+
+int conta_gaps(q_node *root,int *gap_count)
+{
+	f (!root) return; // Caso base: nó nulo
+	if((*it)->gate == 'Z')
+	{
+		*gap_count++;
+	}
+	list<q_node*>::iterator it = filhos.begin();
+    while(it != root->filhos.end())
+	{
+		conta_gaps(it);
+		it++;
+	}
+	
+}
