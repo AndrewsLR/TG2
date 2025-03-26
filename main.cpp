@@ -69,7 +69,6 @@ void testa_gaps(list<transistor*> trans_list, string eq, string saida);
 void remove_pseudo_primeiro(list<transistor*> &trans_list);
 void clean_stack(stack<int> &stack);
 int left_edge_true(list<transistor*> trans_list, queue<net> &nets); //Calcula comprimento de todas as nets, faz left edge
-int conta_gaps(q_node *root);//conta o número de gaps, considerando que cada "slice" ocorre tanto na difusão do pull-up, quanto do pull-down(gaps na mesma posição nao na verade apenas 1)
 
 node raiz;
 q_node* q_raiz;
@@ -238,10 +237,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	gaps_n = place_transistores(trans_list_n);
 	gaps_p = place_transistores(trans_list_p);
 	
-	file.open("Nets_e_gaps.txt", std::ios::app);
-	file<<"A equação é :" << eq<<endl;
-	file<<"Número de gaps :" << gaps_n + gaps_p<<endl;
-	
+		
 	cout<<"Ordenamento do Pulldown com posicao:"<<endl;
 	for(transistor* it : trans_list_n)
 	{
@@ -257,7 +253,12 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	escreve(trans_list_n);
 	escreve(trans_list_p);
 	trans_list_n.splice(trans_list_n.end(),trans_list_p);
-	int num_gaps = conta_gaps(trans_list_n);
+
+	int num_gaps = 0;
+	conta_gaps(q_raiz, &num_gaps, 2);
+	file.open("Nets_e_gaps.txt", std::ios::app);
+	file<<"A equação é :" << eq<<endl;
+	file<<"Número de gaps :" << num_gaps<<endl;
 	int linhas = left_edge_true(trans_list_n, nets_n);
 	if (!file.is_open()) {
     std::cerr << "Failed to open file." << std::endl;

@@ -474,18 +474,37 @@ void inverte(list<q_node*> &filhos)
 	return;
 }
 
-int conta_gaps(q_node *root,int *gap_count)
-{
-	f (!root) return; // Caso base: nó nulo
-	if((*it)->gate == 'Z')
+int conta_gaps(q_node *root, int *gap_count, int pseudo) {
+    if (!root) return pseudo; // Caso base: nó nulo
+
+    if (root->tipo == 'Z') 
 	{
-		*gap_count++;
-	}
-	list<q_node*>::iterator it = filhos.begin();
-    while(it != root->filhos.end())
+        if (pseudo == 0) 
+		{ // Início de um novo gap
+            pseudo = 1;
+        }
+    } 
+	else
 	{
-		conta_gaps(it);
-		it++;
+        if(isalpha(root->tipo))
+		{
+			if(pseudo == 1)
+			{
+				pseudo = 0; // Encontramos um nó real, então resetamos o pseudo
+				(*gap_count)++;
+			}
+			else
+				if(pseudo > 1)
+				{
+					pseudo = 0;
+				}
+		}
 	}
-	
+
+    for (q_node* filho : root->filhos) 
+	{
+        pseudo = conta_gaps(filho, gap_count, pseudo);
+    }
+
+    return pseudo;
 }
