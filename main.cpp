@@ -103,7 +103,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 		{
 			cout<<"INPUT a"<<endl;
 			file.open("saida.txt", std::ios::app);
-			file<<eq<<" "<<"0"<<" "<<"0"<<endl;
+			file<<eq<<" "<<"0"<<" "<<"1"<<endl;
 			file.close();
 		}
 		exit(0);
@@ -256,14 +256,12 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 
 	int num_gaps = 0;
 	conta_gaps(q_raiz, &num_gaps, 2);
-	file.open("Nets_e_gaps.txt", std::ios::app);
-	file<<"A equação é :" << eq<<endl;
-	file<<"Número de gaps :" << num_gaps<<endl;
+	file.open("Nets.txt", std::ios::app);
+	file<<eq<<endl;
 	int linhas = left_edge_true(trans_list_n, nets_n);
 	if (!file.is_open()) {
     std::cerr << "Failed to open file." << std::endl;
 	}
-	file<<"Nets:" <<endl;
 	while(!nets_n.empty())
 	{
 		file<<nets_n.front().nome<<" "<<nets_n.front().inicio<<"-"<<nets_n.front().fim<<" "<<"Linha "<<nets_n.front().linha<<endl;
