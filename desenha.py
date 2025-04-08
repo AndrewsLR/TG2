@@ -28,7 +28,7 @@ with open("Netlists.spice","r") as f, open("Nets.txt","r") as net_file:
     #Cria uma imagem vazia
         n = netlist.shape[0]//2+1           #Comprimento da celula + 1(número de terminais efetivos)
         blank = np.zeros((n*100,1000,3), dtype='uint8')
-        cv.rectangle(blank,(0,0),(1000,n*100,),(255,255,255), thickness=-1)
+        cv.rectangle(blank,(0,0),(1000,n*100),(255,255,255), thickness=-1)
 
     #Abre txt e pega linhas de roteamento
         net = net_file.readline()
