@@ -26,8 +26,9 @@ with open("Netlists.spice","r") as f, open("Nets.txt","r") as net_file:
         print(netlist)
 
     #Cria uma imagem vazia
-        blank = np.zeros((1000,1000,3), dtype='uint8')
         n = netlist.shape[0]//2+1           #Comprimento da celula + 1(número de terminais efetivos)
+        blank = np.zeros((n*100,1000,3), dtype='uint8')
+        cv.rectangle(blank,(0,0),(1000,n*100,),(255,255,255), thickness=-1)
 
     #Abre txt e pega linhas de roteamento
         net = net_file.readline()
@@ -50,21 +51,21 @@ with open("Netlists.spice","r") as f, open("Nets.txt","r") as net_file:
         #cv.imshow('Green',blank)
         for index,row in netlist.iterrows():
             if(row['Type'] == "pfet"):
-                cv.rectangle(blank,(x_p * blank.shape[1]//n,0), ((blank.shape[1]//n)*(x_p+1), blank.shape[0]//3), (0,255,0), thickness=-1) #desenha difusao pull up
-                cv.putText(blank,row['Drain'],(x_p * blank.shape[1]//n + 10,50), cv.FONT_HERSHEY_PLAIN, 1.0,(255,0,0))
-                cv.line(blank, ((blank.shape[1]//n)*(x_p+1),0),((blank.shape[1]//n)*(x_p+1),1000), (0,0,255),8)
+                cv.line(blank,(x_p * blank.shape[1]//n + 10,blank.shape[0]//6), ((blank.shape[1]//n)*(x_p+1), blank.shape[0]//6 ), (0,255,0),15) #desenha difusao pull up
+                cv.putText(blank,row['Drain'],(x_p * blank.shape[1]//n + 10,blank.shape[0]//6 - 10), cv.FONT_HERSHEY_PLAIN, 1.0,(255,0,0))
+                cv.line(blank, ((blank.shape[1]//n)*(x_p+1),0),((blank.shape[1]//n)*(x_p+1),blank.shape[0]), (0,0,255),15)
                 x_p+=1
                 if(x_p == n - 1):
-                    cv.rectangle(blank,(x_p * blank.shape[1]//n,0), ((blank.shape[1]//n)*(x_p+1), blank.shape[0]//3), (0,255,0), thickness=-1) #desenha difusao pull up
-                cv.putText(blank,row['Source'],(x_p * blank.shape[1]//n + 10,50), cv.FONT_HERSHEY_PLAIN, 1.0,(255,0,0))
+                    cv.line(blank,(x_p * blank.shape[1]//n,blank.shape[0]//6), ((blank.shape[1]//n)*(x_p+1), blank.shape[0]//6), (0,255,0), 15) #desenha difusao pull up
+                cv.putText(blank,row['Source'],(x_p * blank.shape[1]//n + 10,blank.shape[0]//6 - 10), cv.FONT_HERSHEY_PLAIN, 1.0,(255,0,0))
 
             if(row['Type'] == "nfet"):
-                cv.rectangle(blank,(x_n * blank.shape[1]//n,(blank.shape[0]//3)*2), ((blank.shape[1]//n)*(x_n+1), (blank.shape[0]//3)*3), (0,255,0), thickness=-1) # desenha difucao pull down
-                cv.putText(blank,row['Drain'],(x_n * blank.shape[1]//n + 10,((blank.shape[0]//3)*2) + 50), cv.FONT_HERSHEY_PLAIN, 1.0, (255,0,0))
+                cv.line(blank,(x_n * blank.shape[1]//n + 10,(blank.shape[0]//3)*2 +(blank.shape[0]//5)), ((blank.shape[1]//n)*(x_n+1), (blank.shape[0]//3)*2 +(blank.shape[0]//5)), (0,255,0), 15) # desenha difucao pull down
+                cv.putText(blank,row['Drain'],(x_n * blank.shape[1]//n + 10,(blank.shape[0]//3)*2 +(blank.shape[0]//5) - 10), cv.FONT_HERSHEY_PLAIN, 1.0, (255,0,0))
                 x_n+=1
                 if(x_n == n - 1):
-                    cv.rectangle(blank,(x_n * blank.shape[1]//n,(blank.shape[0]//3)*2), ((blank.shape[1]//n)*(x_n+1), (blank.shape[0]//3)*3), (0,255,0), thickness=-1) # desenha difucao pull down
-                cv.putText(blank,row['Source'],(x_n * blank.shape[1]//n + 10,((blank.shape[0]//3)*2) + 50), cv.FONT_HERSHEY_PLAIN, 1.0, (255,0,0))
+                    cv.line(blank,(x_n * blank.shape[1]//n,(blank.shape[0]//3)*2 +(blank.shape[0]//5)), ((blank.shape[1]//n)*(x_n+1), (blank.shape[0]//3)*2 +(blank.shape[0]//5)), (0,255,0), 15) # desenha difucao pull down
+                cv.putText(blank,row['Source'],(x_n * blank.shape[1]//n + 10,(blank.shape[0]//3)*2 +(blank.shape[0]//5) - 10), cv.FONT_HERSHEY_PLAIN, 1.0, (255,0,0))
 
         filename = "./img/"+equacao+".jpg"
         print(filename)
