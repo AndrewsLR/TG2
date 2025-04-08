@@ -12,7 +12,6 @@ le_genlib.py
 *.vsidx
 /.vs
 *.txt
-*.py
 *.spice
 *.jpg
 *.genlib
