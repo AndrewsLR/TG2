@@ -7,7 +7,7 @@ with open("Netlists.spice","r") as f, open("Nets.txt","r") as net_file:
     for _ in range(3):
         next(f)
     linha = f.readline()
-    while(len(linha) != 0 and eq < 3):
+    while(len(linha) != 0):
         eq+=1
         #Baseado em como inicia a linha, pega a equacao, ou o netlist
         if linha.startswith("A"):
@@ -34,10 +34,10 @@ with open("Netlists.spice","r") as f, open("Nets.txt","r") as net_file:
         if(net.startswith("N") == 0):
             net = net_file.readline()
         while(net.startswith("N")):
-            nome, tamanho, _, num_lin = net.split()
+            nome, inicio, fim, _, num_lin = net.split()
             
-            inicio = int(tamanho[0])-1
-            fim = int(tamanho[2])-1
+            inicio = int(inicio)-1
+            fim = int(fim)-1
             if(inicio == 1):
                 inicio = 2
             cv.line(blank,(inicio*blank.shape[1]//(n*2-2),(blank.shape[0]//3 + 50*int(num_lin))),(fim*blank.shape[1]//(n*2-2),(blank.shape[0]//3 + 50*int(num_lin))),(255,0,255),8)
@@ -66,7 +66,7 @@ with open("Netlists.spice","r") as f, open("Nets.txt","r") as net_file:
                     cv.rectangle(blank,(x_n * blank.shape[1]//n,(blank.shape[0]//3)*2), ((blank.shape[1]//n)*(x_n+1), (blank.shape[0]//3)*3), (0,255,0), thickness=-1) # desenha difucao pull down
                 cv.putText(blank,row['Source'],(x_n * blank.shape[1]//n + 10,((blank.shape[0]//3)*2) + 50), cv.FONT_HERSHEY_PLAIN, 1.0, (255,0,0))
 
-        filename = str(eq)+".jpg"
+        filename = "./img/"+equacao+".jpg"
         print(filename)
         cv.imwrite(filename,blank)
 #cv.imshow('Blank',blank)
