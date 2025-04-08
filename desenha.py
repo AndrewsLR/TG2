@@ -34,15 +34,16 @@ with open("Netlists.spice","r") as f, open("Nets.txt","r") as net_file:
         if(net.startswith("N") == 0):
             net = net_file.readline()
         while(net.startswith("N")):
-            print(net)
             nome, tamanho, _, num_lin = net.split()
-            inicio = int(tamanho[0]) - 1
-            fim = int(tamanho[2]) - 1
-            print("INICIO:",inicio," FIM:",fim)
-            cv.line(blank,(inicio*blank.shape[1]//n,(blank.shape[0]//3 + 50) * int(num_lin)),(fim*blank.shape[1]//n,(blank.shape[0]//3 + 50) * int(num_lin)),(255,0,255),8)
-            cv.putText(blank,nome,(inicio*blank.shape[1]//n,(blank.shape[0]//3 + 50) * int(num_lin)), cv.FONT_HERSHEY_PLAIN, 1.0,(255,0,0))
+            
+            inicio = int(tamanho[0])-1
+            fim = int(tamanho[2])-1
+            if(inicio == 1):
+                inicio = 2
+            cv.line(blank,(inicio*blank.shape[1]//(n*2-2),(blank.shape[0]//3 + 50*int(num_lin))),(fim*blank.shape[1]//(n*2-2),(blank.shape[0]//3 + 50*int(num_lin))),(255,0,255),8)
+            cv.putText(blank,nome,(inicio*blank.shape[1]//(n*2-2),(blank.shape[0]//3 + 50* int(num_lin))), cv.FONT_HERSHEY_PLAIN, 3.0,(255,0,0))
             net = net_file.readline()
-
+            print(nome," ", inicio, " ", fim)
         x_p = 0
         x_n = 0
         #blank[:] = 0,255,0
