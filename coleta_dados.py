@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 #Pega dados do arquivo saida
 data = pd.read_csv('saida.txt', sep=" ", header=None)
 data.columns = ["eq","gaps","lines"]
-
 gaps = data["gaps"].value_counts()
 print(gaps)
 lines = data["lines"].value_counts()
@@ -20,7 +19,7 @@ data["inputs"] = ""
 for index, row in data.iterrows():
     data.at[index,"inputs"] = sum([1 for c in row["eq"] if c.isalpha()])
 print(data)
-
+data.to_csv('dados.csv')
 inputs = data["inputs"].value_counts()
 print(inputs)
 

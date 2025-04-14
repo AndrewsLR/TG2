@@ -16,3 +16,4 @@ le_genlib.py
 *.jpg
 *.genlib
 *.cdl
+*.csv

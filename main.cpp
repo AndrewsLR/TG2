@@ -858,11 +858,11 @@ void faz_netlist_ordenado_p(list<transistor*> &trans_list, q_node*& root, stack<
 		int primeiro = 0;
 		for(q_node* filho : root->filhos)
 		{
-			
+			cout<<"ORDEM: "<<ordem<<endl;
 			cont++;
 			if(filho->tipo == '*' || filho->tipo == '+')
 			{
-				//cout<<"ORDEM: "<<ordem<<endl;
+				cout<<"ORDEM: "<<ordem<<endl;
 				if(primeiro == 0 && !top.empty())
 				{
 					//cout<<"Guardado top no bott"<<endl;
