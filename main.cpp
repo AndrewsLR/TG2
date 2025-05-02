@@ -194,7 +194,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	if((*saida)->al == '+')
 	{
 		string teste = menor_net((*saida)->source,(*saida)->drain);
-		cout<<"VOLTOU DOS NETS"<<endl;
+		cout<<"MENOR NET É "<<teste<<endl;
 		if((*saida)->source == teste)											//se o net de source for o menor, esta voltando, nao conectado a saida
 		{
 			cout<<"SAIDA P VOLTA "<<(*saida)->volta<<"ANTES DE VOLTAR"<<endl;
@@ -202,14 +202,15 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 			{
 				saida++;
 			}
-			cout<<"SAIDA P ORDEM "<<(*saida)->ordem<<"DEPOIS DE VOLTAR, COM GATE "<<(*saida)->gate<<endl;
+			cout<<"SAIDA P ORDEM AQUI"<<(*saida)->ordem<<"DEPOIS DE VOLTAR, COM GATE "<<(*saida)->gate<<endl;
 			saida_p = (*saida)->source;											//E POSSIVEL QUE VOLTAR SEJA ERRADO?
 
 		}
 		else
 		{
 			saida_p = (*saida)->source;
-			cout<<"SAIDA P ORDEM "<<(*saida)->ordem<<endl;
+			cout<<"SAIDA P ORDEM "<<(*saida)->ordem<<" que é o "<<saida_p<<endl;
+			cout<<"Transistor de saida de gate "<<(*saida)->gate<<endl;
 		}
 	}
 	else
