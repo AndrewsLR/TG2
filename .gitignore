@@ -16,3 +16,5 @@ le_genlib.py
 *.spice
 *.jpg
 *.genlib
+*.cdl
+*.csv
