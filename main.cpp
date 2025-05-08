@@ -140,7 +140,12 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	ordem = 0;
 	faz_netlist_ordenado_p(trans_list_p, q_raiz, top, bott, '0', &ordem);
 	//string saida_p = to_string(net_number - 1);
-	
+	cout<<"p antes de remover pseudos"<<endl;
+	for(transistor* it : trans_list_p)
+	{
+		cout<<"M"<<it->num<<" "<<it->drain<<" "<<it->gate<<" "<<it->source<<" posicao: "<<it->pos<<endl;
+	}
+
 	remove_pseudo(trans_list_n);
 	
 	//TESTE só com n
@@ -341,29 +346,30 @@ void escreve(list<transistor*> trans_list, string eq)
 	it = trans_list.begin();
 	in_out.push_back('Z');
 	list<char>::iterator it2 = in_out.begin();
-	f<<".SUBCKT eq_"<<trans_num<<"tran_"<<in_out.size()<<"ios ";
+	f<<".SUBCKT !"<<eq<<" ";
 	while(it2 != in_out.end())
 	{
 		f<<*it2<<" ";
 		it2++;
 	}
-	f<<endl;
+	f<<"VDD VSS"<<endl;
 	while(it != trans_list.end())
 	{
 		if((*it)->gate != 'Z')
 		{
 			if((*it)->tipo == 'n')
 			{
-				f<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<" " <<"VSS "<<"NMOS_RVT "<<"L=6n NFIN=3 M=1"<<endl;
+				f<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<" " <<" "<<"NMOS_RVT "<<"L=6n NFIN=3 M=1"<<endl;
 			}
 			if((*it)->tipo == 'p')
 			{
-				f<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<" " <<"VDD "<<"PMOS_RVT "<<"L=6n NFIN=3 M=1"<<endl;
+				f<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<" " <<" "<<"PMOS_RVT "<<"L=6n NFIN=3 M=1"<<endl;
 			}
 		}
 		it++;
 	}
 	file.close();
+	f<<".ENDS";
 	f.close();
 	return;
 }
@@ -933,6 +939,15 @@ void faz_netlist_ordenado_p(list<transistor*> &trans_list, q_node*& root, stack<
 						else
 							primeiro = 1;
 					}
+				}
+				//CORRIGINDO AQUI
+				
+				if(primeiro == 1)
+				{
+					if(*ordem == 0)																							//faz o zig-zag quando portas estiverem em paralelo
+					*ordem = 1;
+					else
+					*ordem = 0;
 				}
 
 			}
