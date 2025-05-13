@@ -1313,16 +1313,17 @@ void faz_netlist_ordenado_p(list<transistor*> &trans_list, q_node*& root, stack<
 								top.pop();
 								if(!top.empty())
 								{																				//remove ultimo bott criado por operacao, substitui ele pola net para onde deve voltar
-									subs((*it)->drain, "n"+to_string(top.top()), trans_list);
+									subs((*it)->source, "n"+to_string(top.top()), trans_list);
 								}
 								else
 								{
-									subs((*it)->drain, "VDD", trans_list);
+									cout<<"SUBSTITUINDO "<<((*it))->drain<<" "<<((*it))->gate<<" "<<((*it))->source<<" POR VDD"<<endl;
+									subs((*it)->source, "VDD", trans_list);
 								}
 							}
 							else
 							{
-								subs((*it)->drain, "VDD", trans_list);
+								subs((*it)->source, "VDD", trans_list);
 							}
 
 							//Marca todos os filhos daquele nodo com volta = 1
@@ -1400,6 +1401,8 @@ void faz_netlist_ordenado_p(list<transistor*> &trans_list, q_node*& root, stack<
 								exit(0);
 							}
 						}
+						trans_list.push_back(temp);
+						trans_number++;
 					}
 
 					cout<<"TROCANDO PARA ORDEM 1"<<endl;
