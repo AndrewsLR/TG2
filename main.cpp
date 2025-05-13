@@ -1222,11 +1222,6 @@ void faz_netlist_ordenado_p(list<transistor*> &trans_list, q_node*& root, stack<
 					}
 				}
 			}
-			if(ordem == 0)
-				ordem = 1;
-			else
-				ordem = 0;
-
 		}
 	}
 	//em paralelo precisa guardar nets para retornar e substitituir quando voltar de um serie
@@ -1274,9 +1269,11 @@ void faz_netlist_ordenado_p(list<transistor*> &trans_list, q_node*& root, stack<
 						else
 						{
 							cout<<"ERRO, VOLTANDO PARA VDD COM ORDEM 0"<<endl;
+							exit(0);
 						}
 					}
 
+					cout<<"TROCANDO PARA ORDEM 1"<<endl;
 					ordem = 1;
 				}
 				else
@@ -1315,15 +1312,19 @@ void faz_netlist_ordenado_p(list<transistor*> &trans_list, q_node*& root, stack<
 							{
 								subs((*it)->drain, "VDD", trans_list);
 							}
+
+							//Marca todos os filhos daquele nodo com volta = 1
+							//Quando for definir saida, se necessario volta ate transistor de volta = 0
+							for(int volta = 0; volta < filho->filhos.size(); volta ++)
+							{
+									(*it)->volta = 1;
+									it++;
+							}
+
 						}
 
-						//Marca todos os filhos daquele nodo com volta = 1
-						//Quando for definir saida, se necessario volta ate transistor de volta = 0
-						for(int volta = 0; volta < filho->filhos.size(); volta ++)
-						{
-								(*it)->volta = 1;
-								it++;
-						}
+						cout<<"TROCANDO PARA ORDEM 1"<<endl;
+						ordem = 0;
 
 					}
 					
@@ -1339,181 +1340,117 @@ void faz_netlist_ordenado_p(list<transistor*> &trans_list, q_node*& root, stack<
 						if(!bott.empty())
 						{
 							top.push(bott.top());
-							bott.pop;
+							bott.pop();
 							cout<<"M"<<trans_number<<" n"<<top.top()<<filho->tipo<<" n"<<net_number<<endl;							
-							temp = new transistor('p', trans_number, "VDD", filho->tipo, "n"+to_string(net_number), filho->al);
+							temp = new transistor('p', trans_number, "n"+to_string(top.top()), filho->tipo, "n"+to_string(net_number), filho->al);
 							temp->ordem = ordem;
 						}
-					}
-				}
-				else
-				{
-					if(ordem == 1)
-					{
-
-					}
-				}
-				
-				if(op == '+' && primeiro == 0)													//o primeiro transistor do or tem que ir pra um novo net se veio de um and
-				{
-					if(ordem == 1)
-					{
-						if(top.empty())
+						else
 						{
-							//cout<<"TOP VAZIO, ORDEM 1, PRIMEIRO"<<endl;
 							cout<<"M"<<trans_number<<" VDD"<<" "<<filho->tipo<<" n"<<net_number<<endl;							
 							temp = new transistor('p', trans_number, "VDD", filho->tipo, "n"+to_string(net_number), filho->al);
 							temp->ordem = ordem;
 						}
-						else
-						{
-							cout<<"M"<<trans_number<<" n"<<top.top()<<" "<<filho->tipo<<" n"<<net_number<<endl;							
-							temp = new transistor('p', trans_number, "n"+to_string(top.top()), filho->tipo, "n"+to_string(net_number), filho->al);
-							temp->ordem = ordem;
-							bott.push(top.top());
-						}
-						top.push(net_number);
+
+						bott.push(net_number);
+						trans_list.push_back(temp);
 						net_number++;
+						trans_number++;
+						primeiro_paralelo = 0;
 					}
 					else
-					{	
-						if(ordem == 0)
+					{
+						if(!top.empty())
 						{
-							if(bott.empty())
+							if(!bott.empty())
 							{
-								//cout<<"BOTT VAZIO, ORDEM 0, PRIMEIRO"<<endl;
-								cout<<"M"<<trans_number<<" VDD"<<" "<<filho->tipo<<" n"<<net_number<<endl;							
-								temp = new transistor('p', trans_number, "VDD", filho->tipo, "n"+to_string(net_number), filho->al);
+								cout<<"M"<<trans_number<<" n"<<top.top()<<filho->tipo<<" n"<<bott.top()<<endl;							
+								temp = new transistor('p', trans_number, "n"+to_string(top.top()), filho->tipo, "n"+to_string(bott.top()), filho->al);
 								temp->ordem = ordem;
 							}
 							else
 							{
-									cout<<"M"<<trans_number<<" n"<<bott.top()<<" "<<filho->tipo<<" n"<<net_number<<endl;							
-									temp = new transistor('p', trans_number, "n"+to_string(bott.top()), filho->tipo, "n"+to_string(net_number), filho->al);
-									temp->ordem = ordem;
+								cout<<"ERRO, DESCENDO EM PARALELO PARA VDD"<<endl;
+								exit(0);
 							}
-							top.push(net_number);
-							net_number++;
-							ordem = 1;
+						}
+						else
+						{
+							if(!bott.empty())
+							{
+								cout<<"M"<<trans_number<<" VDD"<<" "<<filho->tipo<<" n"<<bott.top()<<endl;							
+								temp = new transistor('p', trans_number, "n"+to_string(top.top()), filho->tipo, "n"+to_string(bott.top()), filho->al);
+								temp->ordem = ordem;
+							}
+							else
+							{
+								cout<<"ERRO, DESCENDO EM PARALELO PARA VDD"<<endl;
+								exit(0);
+							}
 						}
 					}
-					
-					trans_list.push_back(temp);
-					primeiro = 1;
+
+					cout<<"TROCANDO PARA ORDEM 1"<<endl;
+					ordem = 1;
 				}
 				else
 				{
-					if(ordem == 1)																			//de cima pra baixo
-					{																									
-						//cout<<"ORDEM 0"<<endl;
-						if(top.empty() && bott.empty())
+					if(ordem == 1)
+					{
+						if(primeiro_paralelo == 1)
 						{
-							cout<<"M"<<trans_number<<" VDD"<<" "<<filho->tipo<<" n"<<net_number<<endl;							//vai do top ate o VSS								
-							temp = new transistor('p', trans_number, "VDD", filho->tipo, "n"+to_string(net_number), filho->al);
-							temp->ordem = ordem;
-							trans_list.push_back(temp);
-							top.push(net_number);
-							net_number++;
-							
-						}
-						else
-						{	
-							if(!bott.empty() && !top.empty())
+							if(!top.empty())
 							{
-								cout<<"M"<<trans_number<<" n"<<top.top()<<" "<<filho->tipo<<" n"<<bott.top()<<endl;								
-								temp = new transistor('p', trans_number, "n"+to_string(top.top()), filho->tipo, "n"+to_string(bott.top()), filho->al);
+								bott.push(top.top());
+								top.pop();
+								cout<<"M"<<trans_number<<" n"<<bott.top()<<filho->tipo<<" n"<<net_number<<endl;							
+								temp = new transistor('p', trans_number, "n"+to_string(bott.top()), filho->tipo, "n"+to_string(net_number), filho->al);
 								temp->ordem = ordem;
-								trans_list.push_back(temp);
 							}
 							else
 							{
+								cout<<"ERRO, SUBINDO EM PARALELO DE VDD"<<endl;
+								exit(0);
+							}
+
+							top.push(net_number);
+							trans_list.push_back(temp);
+							net_number++;
+							trans_number++;
+							primeiro_paralelo = 0;
+						}
+						else
+						{
+							if(!bott.empty())
+							{
 								if(!top.empty())
 								{
-									cout<<"M"<<trans_number<<" n"<<top.top()<<" "<<filho->tipo<<" n"<<net_number<<endl;								
-									temp = new transistor('p', trans_number, "n"+to_string(top.top()), filho->tipo, "n"+to_string(net_number), filho->al);
+									cout<<"M"<<trans_number<<" n"<<bott.top()<<filho->tipo<<" n"<<top.top()<<endl;							
+									temp = new transistor('p', trans_number, "n"+to_string(bott.top()), filho->tipo, "n"+to_string(top.top()), filho->al);
 									temp->ordem = ordem;
-									trans_list.push_back(temp);
-									bott.push(net_number);
-									net_number++;
 								}
-								else																									// existia bott, volta ate ele
-								{
-									if(!bott.empty())																//existia um transistor, verifica se ele esta ligado a VSS(bott vazio)
-									{
-										//cout<<"BEM AQUI"<<endl; //crash, o top nao esta vazio, por algum motivo top.top() e invalido
-										cout<<"M"<<trans_number<<" VDD"<<" "<<filho->tipo<<" n"<<bott.top()<<endl;							//vai do top ate o VSS								
-										temp = new transistor('p', trans_number, "VDD", filho->tipo, "n"+to_string(bott.top()), filho->al);
-										temp->ordem = ordem;
-										trans_list.push_back(temp);
-									}
-								}
-							}
-						}
-					}	
-					else
-					{	
-					if(ordem == 0)	//de baixo para cima
-						{
-							//cout<<"ORDEM 1"<<endl;
-							cout<<"TALVEZ AQUI?"<<endl;
-							if(top.empty() && bott.empty())																		//se o top esta vazio, é o primeiro, conecta a ground, guarda novo top
-							{
-								cout<<"M"<<trans_number<<" VDD"<<" "<<filho->tipo<<" n"<<net_number<<endl;
-								temp = new transistor('p', trans_number, "VDD", filho->tipo, "n"+to_string(net_number), filho->al);
-								temp->ordem = ordem;
-								trans_list.push_back(temp);
-								top.push(net_number);																			//bott continua sendo VSS, top é novo net
-								net_number++;
-							}
-							else																								
-							{																										
-								if(!bott.empty() && !top.empty())
-								{
-										cout<<"M"<<trans_number<<" n"<<bott.top()<<" "<<filho->tipo<<" n"<<top.top()<<endl;								
-										temp = new transistor('p', trans_number, "n"+to_string(bott.top()), filho->tipo, "n"+to_string(top.top()), filho->al);
-										temp->ordem = ordem;
-										trans_list.push_back(temp);
-								}									
 								else
 								{
-									if(!bott.empty())																//existia um transistor, verifica se ele esta ligado a VSS(bott vazio)
-									{
-										cout<<"M"<<trans_number<<" n"<<bott.top()<<" "<<filho->tipo<<" VDD"<<endl;							//vai do top ate o VSS								
-										temp = new transistor('p', trans_number, "n"+to_string(bott.top()), filho->tipo, "VDD", filho->al);
-										temp->ordem = ordem;
-										trans_list.push_back(temp);
-									}
-									else																									// existia bott, volta ate ele
-									{
-										if(!top.empty())
-										{
-											cout<<"M"<<trans_number<<" VDD"<<" "<<filho->tipo<<" n"<<net_number<<endl;								
-											temp = new transistor('p', trans_number, "VDD", filho->tipo, "n"+to_string(net_number), filho->al);
-											bott.push(net_number);
-											temp->ordem = ordem;
-											net_number++;
-											trans_list.push_back(temp);
-										}
-									}
+									cout<<"M"<<trans_number<<" n"<<bott.top()<<filho->tipo<<" VDD"<<endl;							
+									temp = new transistor('p', trans_number, "n"+to_string(bott.top()), filho->tipo, "n"+to_string(top.top()), filho->al);
+									temp->ordem = ordem;
 								}
-										
 							}
-						}	
+							else
+							{
+								cout<<"ERRO, SUBINDO EM PARALELO DE VDD"<<endl;
+								exit(0);
+							}
+							trans_list.push_back(temp);
+							trans_number++;
+						}
+
+						cout<<"TROCANDO PARA ORDEM 0"<<endl;
+						ordem = 0;
 					}
-					primeiro = 1;	
 				}
-				
 			}
-			trans_number++;
-			if(ordem == 0)
-			{																						//faz o zig-zag quando portas estiverem em paralelo
-				ordem = 1;
-			}
-			else
-				ordem = 0;
 		}
-		if(!bott.empty())								//bott nunca mais sera usado, pode ser removido
-			bott.pop();
 	}
 	return;
 }
