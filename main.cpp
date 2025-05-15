@@ -364,11 +364,11 @@ void escreve(list<transistor*> trans_list, string eq)
 		{
 			if((*it)->tipo == 'n')
 			{
-				f<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<" " <<" "<<"NMOS_RVT "<<"L=6n NFIN=3 M=1"<<endl;
+				f<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<" "<<"VSS"<<" "<<"NMOS_RVT L=6n NFIN=3 M=1"<<endl;
 			}
 			if((*it)->tipo == 'p')
 			{
-				f<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<" " <<" "<<"PMOS_RVT "<<"L=6n NFIN=3 M=1"<<endl;
+				f<<"M"<<(*it)->num<<" "<<(*it)->drain<<" "<<(*it)->gate<<" "<<(*it)->source<<" VDD "<<"PMOS_RVT L=6n NFIN=3 M=1"<<endl;
 			}
 		}
 		it++;
