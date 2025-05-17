@@ -17,3 +17,6 @@ le_genlib.py
 *.genlib
 *.cdl
 *.csv
+*.zip
+netlists/teste.sh
+netlists/teste.sh
