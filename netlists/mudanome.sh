@@ -6,16 +6,14 @@ for file in *.cdl; do
   dir=$(dirname "$file")
   raw_name=$(basename "$file" .cdl)
 
-  modified_name="${raw_name//_/\\*}"      # Replace _ with *
   modified_name="${modified_name//\(/_}"  # Replace ( with _
   modified_name="${modified_name//\)/_}"  # Replace ) with _
   modified_name="${modified_name//\!/n}"  # Replace ) with _
   echo "Processing $file -> replacing .SUBCKT name with $modified_name"
 
-  sed -i '/\.SUBCKT / s/(/_/g;/\.SUBCKT / s/)/_/g;/\.SUBCKT / s/!/n/g' "$file"
+  sed -i "/\.SUBCKT / s/(/_/g;/\.SUBCKT / s/)/_/g;/\.SUBCKT / s/!/n/g" "$file"
 
-  filename_out="${raw_name//_/\\*}"
-  filename_out="${filename_out//\(/_}"
+  filename_out="${raw_name//\(/_}"
   filename_out="${filename_out//\)/_}"
   filename_out="${filename_out//\!/n}"
   filename_out="${filename_out}.cdl"
