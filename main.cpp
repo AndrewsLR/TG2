@@ -326,7 +326,8 @@ void escreve(list<transistor*> trans_list, string eq)
 	ofstream file;
 	ofstream f;
 	file.open("Netlists.spice", std::ios::app);
-	f.open("./netlists/!"+eq+".cdl", std::ios::app);
+	//f.open("./netlists/!"+eq+".cdl", std::ios::app);
+	f.open("netlists_test.cdl", std::ios::app);
 	list<transistor*>::iterator it = trans_list.begin();
 	list<char> in_out;
 	int trans_num = 0;
@@ -373,8 +374,28 @@ void escreve(list<transistor*> trans_list, string eq)
 		}
 		it++;
 	}
+	f<<"* PLACE_BEGIN !"<<eq<<endl;
+	it = trans_list.begin();
+	int p_tran_n = 2;
+	int p_tran_p = 2;
+	while(it != trans_list.end())
+	{
+		if((*it)->gate != 'Z')
+		{
+			if((*it)->tipo == 'n')
+			{
+				f<<"* M"<<(*it)->num<<" "<<(*it)->pos+1<< " 0"<<endl;
+			}
+			if((*it)->tipo == 'p')
+			{
+				f<<"* M"<<(*it)->num<<" "<<(*it)->pos+1<< " 1"<<endl;
+			}
+		}
+		it++;
+	}
+	f<<"* PLACE_END !"<<eq<<endl;
 	file.close();
-	f<<".ENDS";
+	f<<".ENDS"<<endl;
 	f.close();
 	return;
 }
@@ -392,7 +413,7 @@ int place_transistores(list<transistor*> &trans_list)
 	{
 		if((*it)->gate == 'Z')																	//se for pseudo, remove todos, adiciona 1 na posiçao
 		{
-			pos++;
+			pos+=2;
 			gaps++;
 			ant = it;
 			it++;			
