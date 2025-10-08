@@ -1,6 +1,6 @@
 #!/bin/bash
 > "nets_no_vdd.txt"
-for file in *.cdl; do
+for file in netlists/*.cdl; do
 	[ -e "$file" ] || continue
 	
 	if awk '{ if ($2 == "VDD" || $4 == "VDD") { found=1; exit } } END { exit !found }' "$file"; then

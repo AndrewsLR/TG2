@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for file in *.cdl; do
+for file in netlists/*.cdl; do
   [ -e "$file" ] || continue
 
   dir=$(dirname "$file")
