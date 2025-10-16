@@ -257,7 +257,7 @@ void ordena(q_node *root)
 		while(it != root->filhos.end())									//coloca pseudos para o inicio, guardando primeira posição livre em ordem
 		{
 
-			cout<<"AQUI"<<endl;
+			//cout<<"AQUI"<<endl;
 			if((*it)->cor == 3)
 			{
 				if(it != ordem)
@@ -297,7 +297,7 @@ void ordena(q_node *root)
 		
 		while(it != root->filhos.end())
 		{
-			cout<<"HAHA"<<endl;
+			//cout<<"HAHA"<<endl;
 			it++;
 		}
 		it = ordem;																	//se ja encontrou um misto, proximo misto é invertido
@@ -310,7 +310,6 @@ void ordena(q_node *root)
 			//cout<<"a cor do it e "<<(*it)->cor<<endl; // IT NAO E ACESSAVEL AQUI
 			if((*it)->cor == 2 && flag_mix == 0)
 			{
-				cout<<"TESTE 1"<<endl;
 				//cout<<"Primeiro filho misto "<<(*it)->tipo<<endl;
 				//cout<<"Ultima entrada "<<(*it)->filhos.back()->tipo<<endl;
 				if(ordem != it)

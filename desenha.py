@@ -4,7 +4,7 @@ import pandas as pd
 eq = 0
 with open("Netlists.spice","r") as f, open("Nets.txt","r") as net_file:
     #abre spice e ignora primeiros 3 linha(sem netlist)
-    for _ in range(3):
+    for _ in range(1):
         next(f)
     linha = f.readline()
     while(len(linha) != 0):
@@ -69,7 +69,11 @@ with open("Netlists.spice","r") as f, open("Nets.txt","r") as net_file:
         #desenha polis
         for index,row in netlist.iterrows():
             if(row['Type'] == "pfet"):
-                cv.line(blank, ((blank.shape[1]//n)*(x_p+1),0),((blank.shape[1]//n)*(x_p+1),blank.shape[0]), (0,0,255),15)
+                if(row['Gate'] != "Z"):
+                    cv.line(blank, ((blank.shape[1]//n)*(x_p+1),0),((blank.shape[1]//n)*(x_p+1),blank.shape[0]), (0,0,255),15)
+                    cv.putText(blank,row['Gate'],((blank.shape[1]//n)*(x_p+1)-10,blank.shape[0]//2),cv.FONT_HERSHEY_PLAIN, 2.0, (255,0,0))
+                else:
+                    cv.line(blank, ((blank.shape[1]//n)*(x_p+1),0),((blank.shape[1]//n)*(x_p+1),blank.shape[0]), (255,255,255),30)
                 x_p+=1
 
         filename = "./img/"+equacao+".jpg"
