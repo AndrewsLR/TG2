@@ -202,26 +202,23 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 		}
 	}*/
 	
-	if((*saida)->ordem == 0)
+	if(q_raiz->tipo == '*')
 	{
-		if((*saida)->al == '*')
+		saida_n = (*saida)->source;
+	}
+	else
+	{
+		if(q_raiz->filhos.size()%2 == 0)																	//se for impar
 		{
+			cout<<"Raiz + com filhos par"<<endl;
 			while((*saida)->volta == 1)												//olha para volta, se for 1, continua voltando
 			{
 				saida++;
 			}
-			cout<<"SAIDA N ORDEM "<<(*saida)->ordem<<"DEPOIS DE VOLTAR, COM GATE "<<(*saida)->gate<<endl;
-			saida_n = (*saida)->source;	
+			saida_n = (*saida)->source;
 		}
 		else
-		{
-			saida++;
-			saida_n = (*saida)->source;	
-		}
-	}
-	else
-	{
-		saida_n = (*saida)->source;
+			saida_n = (*saida)->source;
 	}
 	cout<<"SAIDA N EM "<<saida_n<<endl;
 	cout<<"Pego do transistor de gate"<<(*saida)->gate<<" e operação "<<(*saida)->al<<" e ordem "<<(*saida)->ordem<<endl;
@@ -481,6 +478,7 @@ void faz_netlist_ordenado(list<transistor*> &trans_list, q_node*& root, stack<in
 		int primeiro_serie = 1;														//em 1 se for o primeiro filho de um nodo serie, necessario por que o primeiro precisa procura net na pilha oposta
 		int tirou = 0;																//em 1 se ao sair da operacao deve-se colocar devolta na pilha bott
 		int bott_tirado = 0;
+		int top_tmp = 0;
 		for(q_node* filho : root->filhos)
 		{
 			cont++;
@@ -491,6 +489,13 @@ void faz_netlist_ordenado(list<transistor*> &trans_list, q_node*& root, stack<in
 				{
 					if(ordem == 1)
 					{
+						if(!top.empty())
+						{
+							top_tmp = top.top();
+							top.pop();
+							tirou = 1;
+							cout<<"Removendo de top NET"<<top_tmp<<endl;
+						}
 						if(!bott.empty())
 						{
 							top.push(bott.top());
@@ -651,13 +656,27 @@ void faz_netlist_ordenado(list<transistor*> &trans_list, q_node*& root, stack<in
 		}
 		if(tirou == 1)																															//ao sair da operacao, retorna net da operacao anterior, mas coloca o ultimo net criado aqui como topo
 		{
-			int bott_tmp = bott.top();
-			bott.pop();
-			cout<<"Removendo de bott"<<bott.top()<<endl;
-			bott.push(bott_tirado);
-			cout<<"Colocando em bott NET"<<bott.top()<<endl;
-			bott.push(bott_tmp);
-			cout<<"Colocando em bott NET"<<bott.top()<<endl;
+			if(ordem = 0)
+			{
+				int bott_tmp = bott.top();
+				bott.pop();
+				cout<<"Removendo de bott"<<bott.top()<<endl;
+				bott.push(bott_tirado);
+				cout<<"Colocando em bott NET"<<bott.top()<<endl;
+				bott.push(bott_tmp);
+				cout<<"Colocando em bott NET"<<bott.top()<<endl;
+			}
+			else
+			{
+				if(top_tmp != 0)
+				{
+					int tmp = top.top();
+					top.pop();
+					cout<<"Devolvendo NET"<<top_tmp<<" para a pilha de top"<<endl;
+					top.push(top_tmp);
+					top.push(tmp);
+				}
+			}
 		}
 	}
 	//em paralelo precisa guardar nets para retornar e substitituir quando voltar de um serie
@@ -678,26 +697,52 @@ void faz_netlist_ordenado(list<transistor*> &trans_list, q_node*& root, stack<in
 					if(primeiro_paralelo == 1)																		//primeiro filho era uma operacao, deve mudar o proximo net de pilha, por que o primeiro sempre pega da pilha oposta
 					{
 						//cout<<"FILHO OPERACAO, PRIMEIRO, DE ORDEM 0"<<endl;
-						if(!bott.empty())
+						if(!top.empty())
 						{
-							top.push(bott.top());
-							cout<<"Mudando de pilha o NET "<<bott.top()<<" temporariamente"<<endl;
-							//bott.pop();
-							int bott_tmp = bott.top();																//guarda bott da opoeracao anterior para retornar mais tarde
-							bott.pop();
-							faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo, ordem);
-							top.push(bott_tmp);
-							cout<<"Colocando novamente o NET "<<bott_tmp<<" no top"<<endl;
+							int top_tmp = top.top();																	//limpa pilha nao relevante, evitar net de ser usado indevidamente
+							top.pop();
+							cout<<"Limpando top ante de ir para filho OP, descendo"<<endl;
+							if(!bott.empty())
+							{
+								top.push(bott.top());
+								cout<<"Mudando de pilha o NET "<<bott.top()<<" temporariamente"<<endl;
+								int bott_tmp = bott.top();																//guarda bott da opoeracao anterior para retornar mais tarde
+								bott.pop();
+								faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo, ordem);
+								top.push(top_tmp);
+								top.push(bott_tmp);
+								cout<<"Colocando novamente o NET "<<bott_tmp<<" no top"<<endl;
+							}
+							else
+							{
+								faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo, ordem);
+								top.push(top_tmp);
+							}
 						}
 						else
 						{
-							faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo, ordem);
+							if(!bott.empty())
+							{
+								top.push(bott.top());
+								cout<<"Mudando de pilha o NET "<<bott.top()<<" temporariamente"<<endl;
+								//bott.pop();
+								int bott_tmp = bott.top();																//guarda bott da opoeracao anterior para retornar mais tarde
+								bott.pop();
+								faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo, ordem);
+								top.push(bott_tmp);
+								cout<<"Colocando novamente o NET "<<bott_tmp<<" no top"<<endl;
+							}
+							else
+							{
+								faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo, ordem);
+							}
 						}
 						primeiro_paralelo = 0;
 					}
 					else
 					{
 						//cout<<"FILHO OPERACAO, DE ORDEM 0"<<endl;
+						
 						if(!top.empty())
 						{
 							int top_tmp = top.top();
@@ -743,20 +788,46 @@ void faz_netlist_ordenado(list<transistor*> &trans_list, q_node*& root, stack<in
 						if(primeiro_paralelo == 1)
 						{
 							//cout<<"FILHO OPERACAO, PRIMEIRO, DE ORDEM 1"<<endl;
-							if(!top.empty())
+							if(!bott.empty())
 							{
-								bott.push(top.top());
-								cout<<"Mudando de pilha o NET "<<top.top()<<" de top para bott"<<endl;
-								//top.pop();
-								int top_tmp = top.top();
-								top.pop();
-								faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo, ordem);
-								bott.push(top_tmp);
-								cout<<"Colocando na pilha de bott o NET "<<bott.top()<<" novamente"<<endl;
+								int bott_tmp = bott.top();																	//limpa pilha nao relevante, evitar net de ser usado indevidamente
+								bott.pop();
+								cout<<"Limpando bott ante de filho OP, subindo"<<endl;
+								if(!top.empty())
+								{
+									bott.push(top.top());
+									cout<<"Mudando de pilha o NET "<<top.top()<<" de top para bott"<<endl;
+									//top.pop();
+									int top_tmp = top.top();
+									top.pop();
+									faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo, ordem);
+									bott.push(bott_tmp);
+									bott.push(top_tmp);
+									cout<<"Colocando na pilha de bott o NET "<<bott.top()<<" novamente"<<endl;
+								}
+								else
+								{
+									faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo, ordem);
+									bott.push(bott_tmp);
+								}
 							}
 							else
 							{
-								faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo, ordem);
+								if(!top.empty())
+								{
+									bott.push(top.top());
+									cout<<"Mudando de pilha o NET "<<top.top()<<" de top para bott"<<endl;
+									//top.pop();
+									int top_tmp = top.top();
+									top.pop();
+									faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo, ordem);
+									bott.push(top_tmp);
+									cout<<"Colocando na pilha de bott o NET "<<bott.top()<<" novamente"<<endl;
+								}
+								else
+								{
+									faz_netlist_ordenado(trans_list, filho, bott, top, root->tipo, ordem);
+								}
 							}
 							primeiro_paralelo = 0;
 						}
