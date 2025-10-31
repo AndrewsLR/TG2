@@ -1,5 +1,7 @@
 #!/bin/bash
-
+>"Netlists.spice"
+>"netlists_test.cdl"
+>"Nets.txt"
 col_index=4 
 exe="./imp_pandr.exe"
 

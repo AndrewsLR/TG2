@@ -6,11 +6,11 @@ output_file="mismatch_files.txt"
 for file in netlists/*.cdl; do
     echo "Processing: $file"
 
-    # Use awk to detect if any mismatch occurs before a line starting with "."
     has_mismatch=$(awk '
     BEGIN { mismatch = 0 }
-    /^\s*\./ { exit }  # Stop when a line starts with "."
+    /^\s*\.ENDS/ { exit }  # Stop when a line starts with ".ENDS"
     {
+        
         if(NR < 3){
         	next
         }
