@@ -27,7 +27,8 @@ for file in netlists/*.cdl; do
         }
         
     }
-    END { print mismatch }
+    END { if (NR < 3) mismatch = 1
+    		print mismatch }
     ' "$file")
 
     if [[ "$has_mismatch" -eq 1 ]]; then

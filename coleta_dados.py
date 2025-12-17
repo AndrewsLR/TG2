@@ -29,7 +29,7 @@ plt.title('Histogram of Gap Number from genlib')
 plt.xlabel('Number of Gaps')
 plt.ylabel('Number of Equations')
 plt.grid(axis='y', linestyle='--', alpha=0.7)
-#plt.show()
+plt.show()
 
 for value in sorted(data["gaps"].unique()):  # Sorting ensures ordered histograms
     subset = data[data["gaps"] == value]  # Filter rows where inputs == value
@@ -44,7 +44,19 @@ for value in sorted(data["gaps"].unique()):  # Sorting ensures ordered histogram
     counts, bins, _ = plt.hist(subset["inputs"], bins=range(1, 18), edgecolor="black")
     for i in range(len(counts)):
         plt.text(bins[i] + 0.5, counts[i] + 0.1, str(int(counts[i])), ha='right', va='bottom', fontsize=16, color='black')
-    #plt.show()
+    plt.show()
 for index, row in data.iterrows():
-    if(data.at[index,"gaps"] == 3 and data.at[index,"inputs"] == 16 and data.at[index,"lines"] == 6):
+    if(data.at[index,"gaps"] == 3 and data.at[index,"inputs"] == 16 and data.at[index,"lines"] == 7):
         print(data.at[index,"eq"])
+
+plt.figure(figsize=(8,6))
+counts, bins, patches = plt.hist(data["lines"], bins= range(1, 9))      #pega altura (counts) barra(bins) e as barras como objeto(patches)
+for count, x in zip(counts, bins):                                      # conta junto counts e bins usando zip
+    plt.text(x + 0.5, count + 0.1, str(int(count)),                     #coloca nas posições de x e count e escreve o valor de count
+             ha='center', va='bottom', fontsize=10)
+plt.title('Histogram of Line Number from genlib')
+plt.xlabel('Number of Lines')
+plt.ylabel('Number of Equations')
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+plt.show()

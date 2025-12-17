@@ -303,8 +303,8 @@ void ordena(q_node *root)
 		it = ordem;																	//se ja encontrou um misto, proximo misto é invertido
 		while(it != root->filhos.end())									//coloca mistos
 		{
-			cout<< "Ordenando "<<root->tipo<<endl;
-			cout<<"IMEDIATAMENTE DEPOIS"<<endl;
+			//cout<< "Ordenando "<<root->tipo<<endl;
+			//cout<<"IMEDIATAMENTE DEPOIS"<<endl;
 			if(it == root->filhos.end())
 					cout<<"IT APONTA PRO FIM"<<endl;
 			//cout<<"a cor do it e "<<(*it)->cor<<endl; // IT NAO E ACESSAVEL AQUI
@@ -333,7 +333,7 @@ void ordena(q_node *root)
 					//(*it)->filhos = temp.filhos;
 					//it++;
 					//ordem++;
-					cout<<"ELEMENTO APAGADO"<<endl;
+					//cout<<"ELEMENTO APAGADO"<<endl;
 				}
 				else
 				{
@@ -345,12 +345,12 @@ void ordena(q_node *root)
 				list<q_node*>::iterator busca = it;
 				while(busca != root->filhos.end() && ordem != root->filhos.end())			//insere todos os reais após ordenar o primeiro misto
 				{
-					cout<<"Procurando entradas para ordenar"<<endl;
+					//cout<<"Procurando entradas para ordenar"<<endl;
 					//cout<<"Buscando  "<<(*busca)->tipo<<"da cor "<<(*busca)->cor<<endl;
 					//cout<<"Ordem  "<<(*ordem)->tipo<<endl;
 					if((*busca)->cor == 0)
 					{
-						cout<< "Achou entrada "<<(*busca)->tipo<<endl;
+						//cout<< "Achou entrada "<<(*busca)->tipo<<endl;
 						if(busca != ordem)
 						{
 							auto it_next = next(busca);
@@ -376,18 +376,16 @@ void ordena(q_node *root)
 					//cout<<"Fim do loop"<<endl;
 				}
 				//it = ordem;
-				cout<<"Saiu do primeiro misto"<<endl;
+				//cout<<"Saiu do primeiro misto"<<endl;
 				if(it == root->filhos.end())
 					cout<<"IT APONTA PRO FIM"<<endl;
 			}
 			else 
 			{
-				cout<<"ENTOU NO ELSE"<<endl;
-				if(!(*it)->filhos.empty())
-					cout<<"Chegou logo antes de entrar "<<(*it)->tipo<< "Com ultimo filho "<<(*it)->filhos.back()->tipo<<endl;
+				//cout<<"ENTOU NO ELSE"<<endl;
 				if((*it)->cor == 2 && flag_mix == 1)
 				{
-					cout<<"Segundo misto "<<(*it)->tipo<<endl;
+					//cout<<"Segundo misto "<<(*it)->tipo<<endl;
 					(*it)->cor = 1;
 					inverte((*it)->filhos);
 					(*it)->filhos.reverse();
@@ -402,14 +400,12 @@ void ordena(q_node *root)
 				else
 				{
 					it++;
-					cout<<"INCREMENTOU IT NO ELSE"<<endl;
+					//cout<<"INCREMENTOU IT NO ELSE"<<endl;
 				}	
 			}
-			cout<<"FIM DA ITERACAO"<<endl;
-			if(it == root->filhos.end())
-					cout<<"IT APONTA PRO FIM"<<endl;
+			//cout<<"FIM DA ITERACAO"<<endl;
 		}
-		cout<<"PASSOU LOOP2"<<endl;
+		//cout<<"PASSOU LOOP2"<<endl;
 		it = root->filhos.begin();
 		list<q_node*>::reverse_iterator it2 = root->filhos.rbegin();																//define cor do nodo
 		if((*it)->cor == (*it2)->cor)									//se forem iguais, so pode ser branco (3) ou preto (0)

@@ -16,6 +16,7 @@ with open("Netlists.spice","r") as f, open("Nets.txt","r") as net_file:
 
         #Guarda netlist em um dataframe
         linha = f.readline()
+   
         netlist = pd.DataFrame(columns=['Drain', 'Gate', 'Source','Bulk','Type'])
         while linha and linha.startswith("M"):
             _, drain, gate, source, bulk, tipo = linha.split()
@@ -32,16 +33,18 @@ with open("Netlists.spice","r") as f, open("Nets.txt","r") as net_file:
 
     #Abre txt e pega linhas de roteamento
         net = net_file.readline()
-        if(net.startswith("N") == 0):
+        if(net.startswith("!")):
             net = net_file.readline()
-        while(net.startswith("N")):
+        while(net.startswith("n") or net.startswith("Z")):
             nome, inicio, fim, _, num_lin = net.split()
             
-            inicio = int(inicio)-1
-            fim = int(fim)-1
-            if(inicio == 1):
-                inicio = 2
-            cv.line(blank,(inicio*blank.shape[1]//(n*2-2),(blank.shape[0]//3 + 50*int(num_lin))),(fim*blank.shape[1]//(n*2-2),(blank.shape[0]//3 + 50*int(num_lin))),(255,0,255),8)
+            inicio = int(inicio)-1                                              #pos começa em 1, mudando para começar em 0
+            fim = int(fim)
+            if(inicio % 2 != 0):
+                inicio = inicio+1                                               #ignorar pos impares, compartilhamento de difusão
+            if(fim % 2 == 0):
+                fim = fim+1
+            cv.line(blank,(inicio*blank.shape[1]//(n*2) + 50,(blank.shape[0]//3 + 50*int(num_lin))),(fim*blank.shape[1]//(n*2),(blank.shape[0]//3 + 50*int(num_lin))),(255,0,255),8)
             cv.putText(blank,nome,(inicio*blank.shape[1]//(n*2-2),(blank.shape[0]//3 + 50* int(num_lin))), cv.FONT_HERSHEY_PLAIN, 2.0,(255,0,0))
             net = net_file.readline()
             print(nome," ", inicio, " ", fim)
