@@ -849,7 +849,7 @@ int place_con(list<transistor*> trans_list, list<net> &nets)
 				for(net it2 : nets)																									//procura uma trilha na mesma linha que bate
 				{
 					if(it2.linha == linha)
-						if(it2.inicio <= con_pos-1 && it2.fim >= con_pos+1)																//se nao encontrar, achou espaço
+						if(it2.inicio <= con_pos+1 && it2.fim >= con_pos-1)																//se nao encontrar, achou espaço
 							colision = 1;
 				}
 				if(colision == 0)
