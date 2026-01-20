@@ -3,6 +3,7 @@
 >"netlists_test.cdl"
 >"Nets.txt"
 >"saida.txt"
+>"Roteavel.txt"
 col_index=4 
 exe="./imp_pandr.exe"
 

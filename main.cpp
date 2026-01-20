@@ -65,7 +65,8 @@ string saida_paralelo_p(list<transistor*> &trans_list, q_node*& root);										
 void escreve(list<transistor*> trans_list, string eq);	//concerta a saida (remove net a mais criado quando expressão mas externa e +) e escreve em .spice
 
 void clean_stack(stack<int> &stack);
-int left_edge_true(list<transistor*> trans_list, queue<net> &nets); //Calcula comprimento de todas as nets, faz left edge
+int left_edge_true(list<transistor*> trans_list, list<net> &nets); //Calcula comprimento de todas as nets, faz left edge
+int place_con(list<transistor*> trans_list, list<net> &nets); //Posiciona contatos, retornando 1 se foi possivel posicionar todos, 0 caso contrario
 
 node raiz;
 q_node* q_raiz;
@@ -82,10 +83,11 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	}			
 	list<transistor*> trans_list_n;							//transistores N
 	list<transistor*> trans_list_p;							//transistores P
-	queue<net> nets_n;
+	list<net> nets_n;
 	string eq = argv[1];
 	cout <<"A equação é: "<< eq <<endl;
 	ofstream file;
+	ofstream teste;
 	file.open("Netlists.spice", std::ios::app);
 	file<<"A equação é: " << "!"+ eq<<endl;
 	file.close();
@@ -157,7 +159,20 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	file.open("Nets.txt", std::ios::app);
 	file<<"!"+eq<<endl;
 	int linhas = left_edge_true(trans_list_n, nets_n);
-	subs(saida_n,"Z",trans_list_n);
+	//posiciona contatos, retorna 1 se roteavel ou 0 se não 
+	int roteavel = place_con(trans_list_n, nets_n);
+	teste.open("Roteavel.txt", std::ios::app);
+	if(roteavel)
+	{
+		teste<<"!"+ eq<<" OK"<<endl;
+		cout<<"ROTEAVEL"<<endl;
+	}
+	else
+	{
+		teste<<"!"+ eq<<" NO"<<endl;
+		cout<<"NAO ROTEAVEL"<<endl;
+	}
+		subs(saida_n,"Z",trans_list_n);
 	escreve(trans_list_n,eq);
 	if (!file.is_open()) {
     std::cerr << "Failed to open file." << std::endl;
@@ -168,7 +183,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 			nets_n.front().nome = "Z";
 
 		file<<nets_n.front().nome<<" "<<nets_n.front().inicio<<" "<<nets_n.front().fim<<" "<<"Linha "<<nets_n.front().linha<<endl;
-		nets_n.pop();
+		nets_n.pop_front();
 	}
 	file.close();
 	int num_gaps = 0;
@@ -337,7 +352,7 @@ int faz_netlist_ordenado(list<transistor*> &trans_list, q_node*& root, int orige
 						temp = new transistor('n', trans_number, "VSS", filho->tipo, "n"+to_string(dest), filho->al);
 						temp->ordem = ordem;
 						temp->pos = trans_pos;
-						trans_pos = trans_pos+2;
+						trans_pos = trans_pos+3;
 					}
 					else
 					{
@@ -346,14 +361,14 @@ int faz_netlist_ordenado(list<transistor*> &trans_list, q_node*& root, int orige
 							temp = new transistor('n', trans_number, "n"+to_string(origem), filho->tipo, "VSS", filho->al);
 							temp->ordem = ordem;
 							temp->pos = trans_pos;
-							trans_pos = trans_pos+2;
+							trans_pos = trans_pos+3;
 						}
 						else
 						{
 							temp = new transistor('n', trans_number, "n"+to_string(origem), filho->tipo, "n"+to_string(dest), filho->al);
 							temp->ordem = ordem;
 							temp->pos = trans_pos;
-							trans_pos = trans_pos+2;
+							trans_pos = trans_pos+3;
 						}
 					}
 					trans_number++;
@@ -394,13 +409,13 @@ int faz_netlist_ordenado(list<transistor*> &trans_list, q_node*& root, int orige
 						{
 							temp = new transistor('n', trans_number, "VSS", filho->tipo, "n"+to_string(net_number), filho->al);
 							temp->pos = trans_pos;
-							trans_pos = trans_pos+2;
+							trans_pos = trans_pos+3;
 						}
 						else
 						{
 							temp = new transistor('n', trans_number, "n"+to_string(origem), filho->tipo, "n"+to_string(net_number), filho->al);
 							temp->pos = trans_pos;
-							trans_pos = trans_pos+2;
+							trans_pos = trans_pos+3;
 						}
 						origem = net_number;
 						net_number++;
@@ -462,7 +477,7 @@ int faz_netlist_ordenado_p(list<transistor*> &trans_list, q_node*& root, int ori
 						temp = new transistor('p', trans_number, "VDD", filho->tipo, "n"+to_string(dest), filho->al);
 						temp->ordem = ordem;
 						temp->pos = trans_pos;
-						trans_pos = trans_pos+2;
+						trans_pos = trans_pos+3;
 					}
 					else
 					{
@@ -471,14 +486,14 @@ int faz_netlist_ordenado_p(list<transistor*> &trans_list, q_node*& root, int ori
 							temp = new transistor('p', trans_number, "n"+to_string(origem), filho->tipo, "VDD", filho->al);
 							temp->ordem = ordem;
 							temp->pos = trans_pos;
-							trans_pos = trans_pos+2;
+							trans_pos = trans_pos+3;
 						}
 						else
 						{
 							temp = new transistor('p', trans_number, "n"+to_string(origem), filho->tipo, "n"+to_string(dest), filho->al);
 							temp->ordem = ordem;
 							temp->pos = trans_pos;
-							trans_pos = trans_pos+2;
+							trans_pos = trans_pos+3;
 						}
 					}
 					trans_number++;
@@ -519,13 +534,13 @@ int faz_netlist_ordenado_p(list<transistor*> &trans_list, q_node*& root, int ori
 						{
 							temp = new transistor('p', trans_number, "VDD", filho->tipo, "n"+to_string(net_number), filho->al);
 							temp->pos = trans_pos;
-							trans_pos = trans_pos+2;
+							trans_pos = trans_pos+3;
 						}
 						else
 						{
 							temp = new transistor('p', trans_number, "n"+to_string(origem), filho->tipo, "n"+to_string(net_number), filho->al);
 							temp->pos = trans_pos;
-							trans_pos = trans_pos+2;
+							trans_pos = trans_pos+3;
 						}
 						origem = net_number;
 						net_number++;
@@ -696,7 +711,7 @@ int intersecta(net net1, net net2) // Returns 1 if there is an intersection betw
         return 0;
 }
 
-int left_edge_true(list<transistor*> trans_list, queue<net> &nets)
+int left_edge_true(list<transistor*> trans_list, list<net> &nets)
 {
 	int livre = 1;
 	int linha = 1;
@@ -723,10 +738,10 @@ int left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 				
 				if((*it)->source == "n"+to_string(i))											//se encontrar a net
 				{
-					if((*it)->pos+1 < min)
-						min = (*it)->pos+1;
-					if((*it)->pos+1 > max)
-						max = (*it)->pos+1;
+					if((*it)->pos+2 < min)
+						min = (*it)->pos+2;
+					if((*it)->pos+2 > max)
+						max = (*it)->pos+2;
 				}
 			}
 			it++;
@@ -764,7 +779,7 @@ int left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 	}
 	it_left->linha = linha;
 	watermark = it_left->fim;
-	nets.push(*it_left);
+	nets.push_front(*it_left);
 	nets_.erase(it_left);
 
 	while (!nets_.empty()) 
@@ -802,7 +817,7 @@ int left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 			}
 			it_left->linha = linha;
 			watermark = it_left->fim;
-			nets.push(*it_left);
+			nets.push_front(*it_left);
 			nets_.erase(it_left);
 		}
 		
@@ -810,11 +825,44 @@ int left_edge_true(list<transistor*> trans_list, queue<net> &nets)
 		{
 			it_left->linha = linha;
 			watermark = it_left->fim;
-			nets.push(*it_left);
+			nets.push_front(*it_left);
 			nets_.erase(it_left);
 			found = 0;
 		}
 		//cout<<linha<<endl;
 	}
 	return linha;
+}
+int place_con(list<transistor*> trans_list, list<net> &nets)
+{
+	list<transistor*>::iterator tran = trans_list.begin();
+	while((*tran)->tipo == 'n')
+	{
+		int con_pos = (*tran)->pos+1;
+		int found = 0;
+		for(net it : nets)
+		{
+			if((it.inicio < con_pos-1 && it.fim < con_pos-1) ||(it.inicio > con_pos+1))												//encontrou uma trilha que nao bate
+			{
+				int linha = it.linha;
+				int colision = 0;
+				for(net it2 : nets)																									//procura uma trilha na mesma linha que bate
+				{
+					if(it2.linha == linha)
+						if(it2.inicio <= con_pos-1 && it2.fim >= con_pos+1)																//se nao encontrar, achou espaço
+							colision = 1;
+				}
+				if(colision == 0)
+				{
+					found = 1;
+					cout<<"CONTATO DO GATE "<<(*tran)->gate<<" na linha "<<it.linha<<endl;
+					break;
+				}
+			}
+		}
+		if(found == 0)
+			return 0;
+		tran++;
+	}
+	return 1;
 }
