@@ -66,7 +66,7 @@ void escreve(list<transistor*> trans_list, string eq);	//concerta a saida (remov
 
 void clean_stack(stack<int> &stack);
 int left_edge_true(list<transistor*> trans_list, list<net> &nets); //Calcula comprimento de todas as nets, faz left edge
-int place_con(list<transistor*> trans_list, list<net> &nets); //Posiciona contatos, retornando 1 se foi possivel posicionar todos, 0 caso contrario
+int place_con(list<transistor*> trans_list, list<net> &nets, int altura); //Posiciona contatos, retornando 1 se foi possivel posicionar todos, 0 caso contrario
 
 node raiz;
 q_node* q_raiz;
@@ -76,15 +76,16 @@ q_node* q_raiz;
 
 int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e))), SEM INVERSORES
 {
-	if(argc != 2)
+	if(argc != 3)
 	{
-		cout<<"Use a equação boolenana como argumento"<<endl;
+		cout<<"Use a equação boolenana e altura da biblioteca como argumentos"<<endl;
 		exit(1);
 	}			
 	list<transistor*> trans_list_n;							//transistores N
 	list<transistor*> trans_list_p;							//transistores P
 	list<net> nets_n;
 	string eq = argv[1];
+	int altura = stoi(argv[2]);
 	cout <<"A equação é: "<< eq <<endl;
 	ofstream file;
 	ofstream teste;
@@ -102,7 +103,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 		{
 			cout<<"INPUT a"<<endl;
 			file.open("saida.txt", std::ios::app);
-			file<<"!"+eq<<" "<<"0"<<" "<<"1"<<endl;
+			file<<"!"+eq<<" "<<"0"<<" "<<"1"<<" 1"<<endl;
 			file.close();
 			exit(0);
 		}
@@ -159,20 +160,30 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	file.open("Nets.txt", std::ios::app);
 	file<<"!"+eq<<endl;
 	int linhas = left_edge_true(trans_list_n, nets_n);
-	//posiciona contatos, retorna 1 se roteavel ou 0 se não 
-	int roteavel = place_con(trans_list_n, nets_n);
-	teste.open("Roteavel.txt", std::ios::app);
-	if(roteavel)
+	int roteavel;
+		//Se altura foi maior que número de linhas de metal, não roteavel, se for menor, posiciona contatos, retorna 1 se roteavel ou 0 se não 
+	if(linhas > altura)
 	{
-		teste<<"!"+ eq<<" OK"<<endl;
-		cout<<"ROTEAVEL"<<endl;
+		roteavel = 0;
 	}
 	else
 	{
-		teste<<"!"+ eq<<" NO"<<endl;
-		cout<<"NAO ROTEAVEL"<<endl;
+		roteavel = place_con(trans_list_n, nets_n, altura);
+		teste.open("Roteavel.txt", std::ios::app);
+		if(roteavel)
+		{
+			teste<<"!"+ eq<<" OK"<<endl;
+			cout<<"ROTEAVEL"<<endl;
+		}
+		else
+		{
+			teste<<"!"+ eq<<" NO"<<endl;
+			cout<<"NAO ROTEAVEL"<<endl;
+		}
+		teste.close();
 	}
-		subs(saida_n,"Z",trans_list_n);
+	
+	subs(saida_n,"Z",trans_list_n);
 	escreve(trans_list_n,eq);
 	if (!file.is_open()) {
     std::cerr << "Failed to open file." << std::endl;
@@ -189,7 +200,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	int num_gaps = 0;
 	conta_gaps(q_raiz, &num_gaps, 2);
 	file.open("saida.txt", std::ios::app);
-	file<<"!"+eq<<" "<<num_gaps<<" "<<linhas<<endl;
+	file<<"!"+eq<<" "<<num_gaps<<" "<<linhas<<" "<<roteavel<<endl;
 	file.close();
 	list<transistor*>::iterator it = trans_list_n.begin();
 	cout<<"LISTA FINAL:"<<endl;
@@ -833,7 +844,7 @@ int left_edge_true(list<transistor*> trans_list, list<net> &nets)
 	}
 	return linha;
 }
-int place_con(list<transistor*> trans_list, list<net> &nets)
+int place_con(list<transistor*> trans_list, list<net> &nets, int altura)
 {
 	list<transistor*>::iterator tran = trans_list.begin();
 	while((*tran)->tipo == 'n')
@@ -860,8 +871,13 @@ int place_con(list<transistor*> trans_list, list<net> &nets)
 				}
 			}
 		}
-		if(found == 0)
-			return 0;
+		if(found == 0)																										//se não encontrou espaço, verifica se existem linhas vazias
+		{																													//se existir linha vazia, é roteavel
+			if (nets.front().linha < altura)
+				return 1;
+			else
+				return 0;
+		}	
 		tran++;
 	}
 	return 1;

@@ -3,11 +3,12 @@ import matplotlib.pyplot as plt
 
 #Pega dados do arquivo saida
 data = pd.read_csv('saida.txt', sep=" ", header=None)
-data.columns = ["eq","gaps","lines"]
+data.columns = ["eq","gaps","lines","routable"]
 gaps = data["gaps"].value_counts()
 print(gaps)
 lines = data["lines"].value_counts()
 print(lines)
+rotable = data["routable"].value_counts()
 
 #print(data.query("lines == 0"))
 #equacao = data.loc[2].at["eq"]
