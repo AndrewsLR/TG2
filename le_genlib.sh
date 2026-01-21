@@ -1,7 +1,8 @@
 #!/bin/bash
 
-#script para rodar sobre a genlib
-
+#Script to iterate over the genlib file
+#Height variable defines how many row of metal are available, ignoring power
+#Height 0 means routing using only the necessary lines for interconnect, ignoring contacts
 >"Netlists.spice"
 >"netlists_test.cdl"
 >"Nets.txt"
