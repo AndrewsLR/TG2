@@ -162,7 +162,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	int linhas = left_edge_true(trans_list_n, nets_n);
 	int roteavel;
 		//Se altura foi maior que número de linhas de metal, não roteavel, se for menor, posiciona contatos, retorna 1 se roteavel ou 0 se não 
-	if(linhas > altura)
+	if(linhas > altura && altura!= 0)
 	{
 		roteavel = 0;
 	}
@@ -873,7 +873,7 @@ int place_con(list<transistor*> trans_list, list<net> &nets, int altura)
 		}
 		if(found == 0)																										//se não encontrou espaço, verifica se existem linhas vazias
 		{																													//se existir linha vazia, é roteavel
-			if (nets.front().linha < altura)
+			if (nets.front().linha < altura && altura != 0)
 				return 1;
 			else
 				return 0;
