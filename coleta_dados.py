@@ -46,6 +46,7 @@ for value in sorted(data["gaps"].unique()):  # Sorting ensures ordered histogram
     for i in range(len(counts)):
         plt.text(bins[i] + 0.5, counts[i] + 0.1, str(int(counts[i])), ha='right', va='bottom', fontsize=16, color='black')
     plt.show()
+
 for index, row in data.iterrows():
     if(data.at[index,"gaps"] == 3 and data.at[index,"inputs"] == 16 and data.at[index,"lines"] == 7):
         print(data.at[index,"eq"])
@@ -61,3 +62,33 @@ plt.ylabel('Number of Equations')
 plt.grid(axis='y', linestyle='--', alpha=0.7)
 
 plt.show()
+
+for value in sorted(data["routable"].unique()):  # Sorting ensures ordered histograms
+    subset = data[data["routable"] == value]  # Filter rows where inputs == value
+    print(subset)
+    plt.figure(figsize=(8,6))
+    plt.hist(subset["inputs"], bins=range(1, 18), edgecolor="black")
+    plt.title(f'Histogram for Routablility = {value}')
+    plt.xlabel('Number of Inputs')
+    plt.ylabel('Number of Equations')
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+    counts, bins, _ = plt.hist(subset["inputs"], bins=range(1, 18), edgecolor="black")
+    for i in range(len(counts)):
+        plt.text(bins[i] + 0.5, counts[i] + 0.1, str(int(counts[i])), ha='right', va='bottom', fontsize=16, color='black')
+    plt.show()
+
+for value in sorted(data["routable"].unique()):  # Sorting ensures ordered histograms
+    subset = data[data["routable"] == value]  # Filter rows where inputs == value
+    print(subset)
+    plt.figure(figsize=(8,6))
+    plt.hist(subset["lines"], bins=range(1, 9), edgecolor="black")
+    plt.title(f'Histogram for Routablility = {value}')
+    plt.xlabel('Number of Lines')
+    plt.ylabel('Number of Equations')
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+    counts, bins, _ = plt.hist(subset["lines"], bins=range(1, 9), edgecolor="black")
+    for i in range(len(counts)):
+        plt.text(bins[i] + 0.5, counts[i] + 0.1, str(int(counts[i])), ha='right', va='bottom', fontsize=16, color='black')
+    plt.show()
