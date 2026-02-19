@@ -1,6 +1,7 @@
 #include <queue>
 #include <fstream>
 #include "arv_bi_n.cpp"
+#include "maz_hay.cpp"
 #define INT_MAX 2147483647
 using namespace std;
 
@@ -70,6 +71,7 @@ int place_con(list<transistor*> trans_list, list<net> &nets, int altura); //Posi
 
 node raiz;
 q_node* q_raiz;
+q_node* raiz_maz;
 
 
 
@@ -113,6 +115,11 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 		}
 	}
 	quebra_portas(eq);
+	converte(&raiz, raiz_maz);
+	list<TC*> trails;
+	trails = Trail_Trace(raiz_maz);
+	cout<<"FIM TRAIL TRACE"<<endl;
+	cout<<"Resultado trail trace "<< trails.front()->input.front()<<endl;
 	pinta_arv(&raiz);
 	cout<<"Arvore binaria:"<<endl;
 	printLevelOrder(&raiz);
