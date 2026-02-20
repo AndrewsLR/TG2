@@ -39,13 +39,63 @@ TC *Edge_Trail(q_node*& leaf)
     TC* trails = new TC();
     trails->trails.push_back(trail1);
     trails->trails.push_back(trail2);
+    trails->cover_type = 0;
     return trails;
 }
 
 TC* Node_CTC(char type, list<TC*> child_trails)
 {
     TC* CTC = new TC();
-
+    //se cover for tipo 0, criar cover nova apenas com concactenacao; significa que era uma lista de edges
+    //caso contrario, cria combinacoes mantendo trails
+    list<TC*>::iterator it;
+    list<TC*>::iterator it2;
+    //Cria nested loop para testar todas as combinacoes
+    for(it = child_trails.begin(); it != child_trails.end(); it++)
+    {
+        for(it2 = it++; it2 != child_trails.end(); it2++)
+        {
+            //se for cover de edges, cria novo trail e procura se ja existe um do mesmo tipo e mesmo tamanho
+            if((*it)->cover_type == 0)
+            {
+                if(type == '*')
+                {
+                    Trail temp((*it)->trails.front().input, mult_sum[(*it)->trails.front().trail_type][(*it2)->trails.front().trail_type]);
+                    int found = 0;
+                    for(TC* child : child_trails)
+                    {
+                        if (child->cover_type == temp.trail_type)
+                        {
+                            if(child->trails.size() == 1)
+                                found = 1;
+                        }
+                    }
+                    //se nao existir adiciona como nova trail
+                    if(found == 0)
+                    {
+                        TC* tmp = new TC(temp);
+                        child_trails.push_back(tmp);
+                    }
+                    //concatenate
+                    //create new cover with concatenation
+                    //if child_trails does not have cover type or is bigger, add, remove bigger
+                }
+            }
+            else
+            {
+                //concatenate all combination of trials
+                //add the new/smaller ones
+                for(Trials* trail1 : (*it)->trails)
+                {
+                    for(Trials* trail2 : (*it2)->trails)
+                    {
+                        //if new trail, modify trial1
+                        //if cant concatenate, add trail
+                    }
+                }
+            }
+        }
+    }
     return CTC;
 }
 

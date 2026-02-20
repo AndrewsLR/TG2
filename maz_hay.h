@@ -24,6 +24,11 @@ typedef struct trail_cover{
 		trails = trails_;
 		cover_type = type;
 	}
+	trail_cover(Trail trails_)
+	{
+		trails.push_back(trails_);
+		cover_type = trails_.trail_type;
+	}
 }TC;
 
 //Mazias-Hayes
