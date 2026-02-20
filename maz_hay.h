@@ -5,19 +5,28 @@
 
 using namespace std;
 
-typedef struct trail_cover{
-	list<char> input;
-	list<int> trail_type;
-	int cover_type;
-	trail_cover(char input_, int type)
+typedef struct trail{
+	char input;
+	int trail_type;
+	trail(char input_, int type)
 	{
-		input.push_back(input_);
-		trail_type.push_back(type);
-        cover_type = type;
+		input = input_;
+		trail_type = type;
+	}
+}Trail;
+
+typedef struct trail_cover{
+	list<Trail> trails;
+	int cover_type;
+	trail_cover() = default;
+	trail_cover(list<Trail> trails_, int type)
+	{
+		trails = trails_;
+		cover_type = type;
 	}
 }TC;
 
 //Mazias-Hayes
-list<TC*> Edge_Trail(q_node*& leaf, TC trails);
-list<TC*> Node_CTC(q_node*& root, TC trails);
-list<TC*> Trail_Trace(q_node*& root);
+TC* Edge_Trail(q_node*& leaf, TC trails);
+TC* Node_CTC(char type, list<list<TC*>> child_trails);
+TC* Trail_Trace(q_node*& root);

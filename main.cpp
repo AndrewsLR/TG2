@@ -116,10 +116,10 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	}
 	quebra_portas(eq);
 	converte(&raiz, raiz_maz);
-	list<TC*> trails;
+	TC* trails;
 	trails = Trail_Trace(raiz_maz);
 	cout<<"FIM TRAIL TRACE"<<endl;
-	cout<<"Resultado trail trace "<< trails.front()->input.front()<<endl;
+	cout<<"Resultado trail trace "<< trails->trails.front().input<<endl;
 	pinta_arv(&raiz);
 	cout<<"Arvore binaria:"<<endl;
 	printLevelOrder(&raiz);

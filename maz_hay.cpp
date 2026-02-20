@@ -32,33 +32,41 @@ int sum_mult [12] [12] = {
 //entradas 0 na tabela sigifica que um dos covers possui multiplas tracks, implicando em tentar concatenar com cada uma de suas tracks
 
 //Mazias-Hayes
-list<TC*> Edge_Trail(q_node*& leaf)
+TC *Edge_Trail(q_node*& leaf)
 {
-    TC *trail1 = new TC(leaf->tipo, 1);
-    TC *trail2 = new TC(leaf->tipo, 2);
-    list<TC*> trails;
-    trails.push_back(trail1);
-    trails.push_back(trail2);
+    Trail trail1(leaf->tipo, 1);
+    Trail trail2(leaf->tipo, 2);
+    TC* trails = new TC();
+    trails->trails.push_back(trail1);
+    trails->trails.push_back(trail2);
     return trails;
 }
-list<TC*> Node_CTC(q_node root, char op);
-list<TC*> Trail_Trace(q_node*& root)
+
+TC* Node_CTC(char type, list<TC*> child_trails)
+{
+    TC* CTC = new TC();
+
+    return CTC;
+}
+
+TC* Trail_Trace(q_node*& root)
 {
     cout<<"INICIANDO TRAIL TRACE"<<endl;
-    list<TC*> trails;
+    TC *trails = new TC();
     if(root->filhos.size() < 1)
     {
         cout<<"Nodo folha, fazendo Edge"<<endl;
         trails = Edge_Trail(root);
-        cout << "RETORNOU " << trails.front()->input.front() << " E " << trails.back()->input.front() << endl;
+        cout << "RETORNOU " << trails->trails.front().trail_type << " E " << trails->trails.back().trail_type << endl;
     }
     else
     {
+        list<TC*> child_trails;
         for(q_node* filho : root->filhos)
         {
-            list<TC*> temp = Trail_Trace(filho, root->tipo)
+            child_trails.push_back(Trail_Trace(filho));
         }
-        Node_CTC(root, trails)
+        trails = Node_CTC(root->tipo, child_trails);
     }
     return trails;
 }
