@@ -89,14 +89,16 @@ TC* Node_CTC(char type, list<TC*> child_trails)
                 {
                     for(Trials* trail2 : (*it2)->trails)
                     {
-                        //if new trail, modify trial1
+                        //if needs to add:
+                        //if new type, modify trial1
                         //if cant concatenate, add trail
+                        //update cover_type
                     }
                 }
             }
         }
     }
-    return CTC;
+    return CTC;t, mo
 }
 
 TC* Trail_Trace(q_node*& root)
