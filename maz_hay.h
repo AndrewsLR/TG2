@@ -56,12 +56,18 @@ typedef struct complete_trail_cover{
 	}
 	int add_cover(TC cover)
 	{
-		for(TC it: covers)
+		list<TC>::iterator it_cover;
+		for(it_cover = covers.begin(); it_cover != covers.end(); it_cover++)
 		{
-			if(it.cover_type == cover.cover_type)			//if a cover of same type exists and is smaller, dont add
+			if(it_cover->cover_type == cover.cover_type)			//if a cover of same type exists and is smaller, dont add
 			{
-				if(it.trails.size() < cover.trails.size())
+				if(it_cover->trails.size() < cover.trails.size())
 					return 0;
+				else
+					if(it_cover->trails.size() > cover.trails.size())
+					{
+						covers.erase(it_cover);
+					}
 			}
 		}
 		covers.push_back(cover);

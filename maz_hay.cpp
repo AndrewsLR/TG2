@@ -131,7 +131,7 @@ CTC* Node_CTC(char type, list<CTC*> child_covers)
                             }
                         }
                      }
-                     else
+                     else //caso sem cover edge
                      {
                         
                      }
