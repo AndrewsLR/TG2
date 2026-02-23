@@ -56,7 +56,6 @@ typedef struct complete_trail_cover{
 	}
 	int add_cover(TC cover)
 	{
-		int found = 0;
 		for(TC it: covers)
 		{
 			if(it.cover_type == cover.cover_type)			//if a cover of same type exists and is smaller, dont add
