@@ -32,93 +32,84 @@ int sum_mult [12] [12] = {
 //entradas 0 na tabela sigifica que um dos covers possui multiplas tracks, implicando em tentar concatenar com cada uma de suas tracks
 
 //Mazias-Hayes
-TC *Edge_Trail(q_node*& leaf)
+CTC* Edge_Trail(q_node*& leaf)
 {
     Trail trail1(leaf->tipo, 1);
     Trail trail2(leaf->tipo, 2);
-    TC* trails = new TC();
-    trails->trails.push_back(trail1);
-    trails->trails.push_back(trail2);
-    trails->cover_type = 0;
-    return trails;
+    TC trails;
+    trails.trails.push_back(trail1);
+    trails.trails.push_back(trail2);
+    trails.cover_type = 0;
+    CTC* cover= new CTC(trails);
+    return cover;
 }
 
-TC* Node_CTC(char type, list<TC*> child_trails)
+CTC* Node_CTC(char type, list<CTC*> child_covers)
 {
-    TC* CTC = new TC();
+    CTC* this_ctc = new CTC();
     //se cover for tipo 0, criar cover nova apenas com concactenacao; significa que era uma lista de edges
     //caso contrario, cria combinacoes mantendo trails
-    list<TC*>::iterator it;
-    list<TC*>::iterator it2;
+    list<CTC*>::iterator it;
+    list<CTC*>::iterator it2;
     //Cria nested loop para testar todas as combinacoes
-    for(it = child_trails.begin(); it != child_trails.end(); it++)
+    for(it = child_covers.begin(); it != child_covers.end(); it++)  // for each CTC
     {
-        for(it2 = it++; it2 != child_trails.end(); it2++)
+        for(TC it_tc : (*it)->covers) //for each TC
         {
-            //se for cover de edges, cria novo trail e procura se ja existe um do mesmo tipo e mesmo tamanho
-            if((*it)->cover_type == 0)
+            for(it2 = next(it); it2 != child_covers.end(); it2++) //for each other CTC
             {
-                if(type == '*')
+                //(*it)->print_covers();
+                //(*it2)->print_covers();
+                for(TC it2_tc : (*it2)->covers)                 //for each other TC
                 {
-                    Trail temp((*it)->trails.front().input, mult_sum[(*it)->trails.front().trail_type][(*it2)->trails.front().trail_type]);
-                    int found = 0;
-                    for(TC* child : child_trails)
+                    if(it_tc.cover_type == 0)                  // if an edge TC
                     {
-                        if (child->cover_type == temp.trail_type)
+                        if(type == '*')
                         {
-                            if(child->trails.size() == 1)
-                                found = 1;
+                            for(Trail it2_trail : it2_tc.trails) //create a trail for each combinations, add to CTC if needed
+                            {
+                                Trail temp(it_tc.trails.front().input.front(), mult_sum[it_tc.trails.front().trail_type - 1][it2_trail.trail_type - 1]);
+                                temp.input.push_back(it2_trail.input.front());
+                                //cout<<"CRIADO NOVO TRAIL DO TIPO "<< temp.trail_type<<" CONCATENANDO "<<it_tc.trails.front().input.front()<<" E "<<it2_trail.input.front()<<endl;
+                                TC tmp(temp);
+                                if(this_ctc->add_cover(tmp))
+                                {
+                                    cout<<"TRAIL COVER ADICIONADO"<<endl;
+                                }
+                                else
+                                {
+                                    cout<<"TRAIL COVER RECUSADO"<<endl;
+                                }
+                                
+                            }
                         }
-                    }
-                    //se nao existir adiciona como nova trail
-                    if(found == 0)
-                    {
-                        TC* tmp = new TC(temp);
-                        child_trails.push_back(tmp);
-                    }
-                    //concatenate
-                    //create new cover with concatenation
-                    //if child_trails does not have cover type or is bigger, add, remove bigger
-                }
-            }
-            else
-            {
-                //concatenate all combination of trials
-                //add the new/smaller ones
-                for(Trials* trail1 : (*it)->trails)
-                {
-                    for(Trials* trail2 : (*it2)->trails)
-                    {
-                        //if needs to add:
-                        //if new type, modify trial1
-                        //if cant concatenate, add trail
-                        //update cover_type
-                    }
+                     }
                 }
             }
         }
     }
-    return CTC;t, mo
+    return this_ctc;
 }
 
-TC* Trail_Trace(q_node*& root)
+CTC* Trail_Trace(q_node*& root)
 {
     cout<<"INICIANDO TRAIL TRACE"<<endl;
-    TC *trails = new TC();
+    CTC* trails;
     if(root->filhos.size() < 1)
     {
         cout<<"Nodo folha, fazendo Edge"<<endl;
         trails = Edge_Trail(root);
-        cout << "RETORNOU " << trails->trails.front().trail_type << " E " << trails->trails.back().trail_type << endl;
+        cout << "RETORNOU " << trails->covers.front().trails.front().input.front() << " E " << trails->covers.front().trails.back().input.front() << endl;
     }
     else
     {
-        list<TC*> child_trails;
+        cout<<"NAO E FOLHA"<<endl;
+        list<CTC*> child_covers;
         for(q_node* filho : root->filhos)
         {
-            child_trails.push_back(Trail_Trace(filho));
+            child_covers.push_back(Trail_Trace(filho));
         }
-        trails = Node_CTC(root->tipo, child_trails);
+        trails = Node_CTC(root->tipo, child_covers);
     }
     return trails;
 }
