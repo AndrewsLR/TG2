@@ -36,11 +36,14 @@ CTC* Edge_Trail(q_node*& leaf)
 {
     Trail trail1(leaf->tipo, 1);
     Trail trail2(leaf->tipo, 2);
-    TC trails;
-    trails.trails.push_back(trail1);
-    trails.trails.push_back(trail2);
-    trails.cover_type = 0;
-    CTC* cover= new CTC(trails);
+    TC tc1;
+    TC tc2;
+    tc1.trails.push_back(trail1);
+    tc2.trails.push_back(trail2);
+    tc1.cover_type = 1;
+    tc2.cover_type = 2;
+    CTC* cover= new CTC(tc1);
+    cover->add_cover(tc2);
     return cover;
 }
 
@@ -58,7 +61,7 @@ CTC* Node_CTC(char type, list<CTC*> child_covers)
         {
             for(it2 = next(it); it2 != child_covers.end(); it2++) //for each other CTC
             {
-                (*it)->print_covers();
+                //(*it)->print_covers();
                 //(*it2)->print_covers();
                 for(TC it2_tc : (*it2)->covers)                 //for each other TC
                 {
@@ -69,12 +72,17 @@ CTC* Node_CTC(char type, list<CTC*> child_covers)
                         CTC* temp_ctc = Concatenate(temp_tc1, it2_tc, type);
                         for(TC it_ctc: temp_ctc->covers)
                         {
-                            this_ctc->add_cover(it_ctc);
+                            int insert = this_ctc->add_cover(it_ctc);
+                            if(insert)
+                                cout<<"Adicionado"<<endl;
+                            
                         }
                         CTC* temp2_ctc = Concatenate(temp_tc2, it2_tc, type);
                         for(TC it_ctc: temp2_ctc->covers)
                         {
-                            this_ctc->add_cover(it_ctc);
+                            int insert = this_ctc->add_cover(it_ctc);
+                            if(insert)
+                                cout<<"Adicionado"<<endl;
                         }
                     }
                      else //caso sem cover edge
@@ -82,7 +90,9 @@ CTC* Node_CTC(char type, list<CTC*> child_covers)
                         CTC* temp_ctc = Concatenate(it_tc, it2_tc, type);
                         for(TC it_ctc: temp_ctc->covers)
                         {
-                            this_ctc->add_cover(it_ctc);
+                            int insert = this_ctc->add_cover(it_ctc);
+                            if(insert)
+                                cout<<"Adicionado"<<endl;
                         }
                     }
                 }
@@ -123,7 +133,13 @@ CTC* Concatenate(TC cover1, TC cover2, int type)
     {
         for(Trail it2_trail : cover2.trails)
         {
-            cout<<"COMBINANDO "<< it1_trail.input.front()<<" TIPO "<<it1_trail.trail_type<<" COM "<<it2_trail.input.front()<<" TIPO "<<it2_trail.trail_type<<endl;
+            cout<<"COMBINANDO ";
+            for(char it : it1_trail.input)
+                cout<<it<<",";
+            cout<<" TIPO "<<it1_trail.trail_type<<" COM ";
+            for(char it : it2_trail.input)
+                cout<<it<<",";
+            cout<<" TIPO "<<it2_trail.trail_type<<endl;
             int cover_type;
             if(type == '*')
                 cover_type = mult_sum[it1_trail.trail_type - 1][it2_trail.trail_type - 1];
@@ -139,7 +155,12 @@ CTC* Concatenate(TC cover1, TC cover2, int type)
             }
             else                                                                    //if cover has one trail
             {
-                Trail temp(it1_trail.input.front(), cover_type);
+                Trail temp;
+                temp.trail_type = cover_type;
+                for(char input : it1_trail.input)
+                    temp.input.push_back(input);
+                 for(char input : it2_trail.input)
+                    temp.input.push_back(input);
                 temp.input.push_back(it2_trail.input.front());
                 tmp.trails.push_back(temp);
                 tmp.cover_type = cover_type;
@@ -149,5 +170,6 @@ CTC* Concatenate(TC cover1, TC cover2, int type)
 
         }
     }
+    concatenate->print_covers();
     return concatenate;
 }

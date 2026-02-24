@@ -8,6 +8,7 @@ using namespace std;
 typedef struct trail{
 	list<char> input;
 	int trail_type;
+	trail() = default;
 	trail(char input_, int type)
 	{
 		input.push_back(input_);
