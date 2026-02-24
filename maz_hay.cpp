@@ -62,79 +62,29 @@ CTC* Node_CTC(char type, list<CTC*> child_covers)
                 //(*it2)->print_covers();
                 for(TC it2_tc : (*it2)->covers)                 //for each other TC
                 {
-                    if(it_tc.cover_type == 0)                  // if an edge TC
+                    if(it_tc.cover_type == 0)                  // if an edge TC || EACH CONCATENATION HAVE TO BE SELF CONTAINED, TRY CONCATENING EVEN AFTER A SUCCESSEFUL CONCATENATION, add a concatenate function?
                     {
-                        for(Trail it1_trail : it_tc.trails)
+                        TC temp_tc1(it_tc.trails.front());
+                        TC temp_tc2(it_tc.trails.back());
+                        CTC* temp_ctc = Concatenate(temp_tc1, it2_tc, type);
+                        for(TC it_ctc: temp_ctc->covers)
                         {
-                            if(type == '*')
-                            {
-                                for(Trail it2_trail : it2_tc.trails) //create a trail for each combinations, add to CTC if needed
-                                {
-                                    cout<<"COMBINANDO "<< it1_trail.input.front()<<" TIPO "<<it1_trail.trail_type<<" COM "<<it2_trail.input.front()<<" TIPO "<<it2_trail.trail_type<<endl;
-                                    int cover_type = mult_sum[it1_trail.trail_type - 1][it2_trail.trail_type - 1];
-                                    TC tmp;
-                                    if(cover_type > 11)             //if cover has multiple trails
-                                    {
-                                        tmp.cover_type = cover_type;
-                                        tmp.trails.push_back(it1_trail);
-                                        tmp.trails.push_back(it2_trail);
-                                    }
-                                    else                                                                    //if cover has one trail
-                                    {
-                                        Trail temp(it1_trail.input.front(), cover_type);
-                                        temp.input.push_back(it2_trail.input.front());
-                                        tmp.trails.push_back(temp);
-                                        tmp.cover_type = cover_type;
-                                    }
-                                
-                                    if(this_ctc->add_cover(tmp))
-                                    {
-                                        cout<<"TRAIL COVER ADICIONADO"<<endl;
-                                    }
-                                    else
-                                    {
-                                        cout<<"TRAIL COVER RECUSADO"<<endl;
-                                    }
-                                    
-                                }
-                            }
-                            else
-                            {
-                                for(Trail it2_trail : it2_tc.trails) //create a trail for each combinations, add to CTC if needed
-                                {
-                                    int cover_type = sum_mult[it1_trail.trail_type - 1][it2_trail.trail_type - 1];
-                                    TC tmp;
-                                    if(cover_type > 11)             //if cover has multiple trails
-                                    {
-                                        tmp.cover_type = cover_type;
-                                        tmp.trails.push_back(it1_trail);
-                                        tmp.trails.push_back(it2_trail);
-                                    }
-                                    else                                                                    //if cover has one trail
-                                    {
-                                        Trail temp(it1_trail.input.front(), cover_type);
-                                        temp.input.push_back(it2_trail.input.front());
-                                        tmp.trails.push_back(temp);
-                                        tmp.cover_type = cover_type;
-                                    }
-                                
-                                    if(this_ctc->add_cover(tmp))
-                                    {
-                                        cout<<"TRAIL COVER ADICIONADO"<<endl;
-                                    }
-                                    else
-                                    {
-                                        cout<<"TRAIL COVER RECUSADO"<<endl;
-                                    }
-                                    
-                                }
-                            }
+                            this_ctc->add_cover(it_ctc);
                         }
-                     }
+                        CTC* temp2_ctc = Concatenate(temp_tc2, it2_tc, type);
+                        for(TC it_ctc: temp2_ctc->covers)
+                        {
+                            this_ctc->add_cover(it_ctc);
+                        }
+                    }
                      else //caso sem cover edge
-                     {
-                        
-                     }
+                    {
+                        CTC* temp_ctc = Concatenate(it_tc, it2_tc, type);
+                        for(TC it_ctc: temp_ctc->covers)
+                        {
+                            this_ctc->add_cover(it_ctc);
+                        }
+                    }
                 }
             }
         }
@@ -163,4 +113,41 @@ CTC* Trail_Trace(q_node*& root)
         trails = Node_CTC(root->tipo, child_covers);
     }
     return trails;
+}
+
+CTC* Concatenate(TC cover1, TC cover2, int type)
+{
+    //implementacao provavelmente errada, apos achar uma concatenacao, segue com ela ate o final
+    CTC* concatenate = new CTC();
+    for(Trail it1_trail : cover1.trails)
+    {
+        for(Trail it2_trail : cover2.trails)
+        {
+            cout<<"COMBINANDO "<< it1_trail.input.front()<<" TIPO "<<it1_trail.trail_type<<" COM "<<it2_trail.input.front()<<" TIPO "<<it2_trail.trail_type<<endl;
+            int cover_type;
+            if(type == '*')
+                cover_type = mult_sum[it1_trail.trail_type - 1][it2_trail.trail_type - 1];
+            else
+                cover_type = sum_mult[it1_trail.trail_type - 1][it2_trail.trail_type - 1];
+            TC tmp;
+            if(cover_type > 11)             //if cover has multiple trails
+            {
+                tmp.cover_type = cover_type;
+                tmp.trails.push_back(it1_trail);
+                tmp.trails.push_back(it2_trail);
+                concatenate->add_cover(tmp);
+            }
+            else                                                                    //if cover has one trail
+            {
+                Trail temp(it1_trail.input.front(), cover_type);
+                temp.input.push_back(it2_trail.input.front());
+                tmp.trails.push_back(temp);
+                tmp.cover_type = cover_type;
+                it1_trail = temp;
+                concatenate->add_cover(tmp);
+            }                
+
+        }
+    }
+    return concatenate;
 }

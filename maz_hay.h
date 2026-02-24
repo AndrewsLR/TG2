@@ -87,3 +87,4 @@ typedef struct complete_trail_cover{
 CTC* Edge_Trail(q_node*& leaf);
 CTC* Node_CTC(char type, list<CTC*> child_covers);
 CTC* Trail_Trace(q_node*& root);
+CTC* Concatenate(TC cover1, TC cover2, int type);
