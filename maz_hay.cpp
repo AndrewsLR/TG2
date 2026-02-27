@@ -65,39 +65,24 @@ CTC* Node_CTC(char type, list<CTC*> child_covers)
                 //(*it2)->print_covers();
                 for(TC it2_tc : (*it2)->covers)                 //for each other TC
                 {
-                    if(it_tc.cover_type == 0)                  // if an edge TC || EACH CONCATENATION HAVE TO BE SELF CONTAINED, TRY CONCATENING EVEN AFTER A SUCCESSEFUL CONCATENATION, add a concatenate function?
+                    CTC* temp_ctc = Concatenate(it_tc, it2_tc, type);
+                    //Aqui seria necessario concatenar esses novos TCs tambem no loop
+                    //Inserir no child_covers?
+                    //Criar ctcs descartaveis e iterar sobre eles?
+                    for(TC it_ctc: temp_ctc->covers)
                     {
-                        TC temp_tc1(it_tc.trails.front());
-                        TC temp_tc2(it_tc.trails.back());
-                        CTC* temp_ctc = Concatenate(temp_tc1, it2_tc, type);
-                        for(TC it_ctc: temp_ctc->covers)
-                        {
-                            int insert = this_ctc->add_cover(it_ctc);
-                            if(insert)
-                                cout<<"Adicionado"<<endl;
-                            
-                        }
-                        CTC* temp2_ctc = Concatenate(temp_tc2, it2_tc, type);
-                        for(TC it_ctc: temp2_ctc->covers)
-                        {
-                            int insert = this_ctc->add_cover(it_ctc);
-                            if(insert)
-                                cout<<"Adicionado"<<endl;
-                        }
-                    }
-                     else //caso sem cover edge
-                    {
-                        CTC* temp_ctc = Concatenate(it_tc, it2_tc, type);
-                        for(TC it_ctc: temp_ctc->covers)
-                        {
-                            int insert = this_ctc->add_cover(it_ctc);
-                            if(insert)
-                                cout<<"Adicionado"<<endl;
-                        }
+                        int insert = this_ctc->add_cover(it_ctc);
+                        //if(insert)
+                        //cout<<"Adicionado"<<endl;
                     }
                 }
             }
         }
+        //this_ctc->print_covers();
+       /* for(TC it_this : this_ctc->covers)
+        {
+            (*it)->add_cover(it_this);
+        }*/
     }
     return this_ctc;
 }
@@ -136,6 +121,7 @@ CTC* Concatenate(TC cover1, TC cover2, int type)
         //1 TC para cada it1_ trail
         //se não concatenar, adiciona it2_trail ao TC e segue tentando concatenar
         // se concatenar, adiciona ao TC a concatenacao e todas as trails de it2_trail que sobraram
+        //se ao terminar interacao nao concatenou, adciona it1_trail ao TC
         //Cria novo TC
         for(TC list_it : tc_list)
         {
@@ -149,24 +135,34 @@ CTC* Concatenate(TC cover1, TC cover2, int type)
                     cover_type = sum_mult[trail_it.trail_type - 1][it1_trail.trail_type - 1];
                 if(cover_type < 11)
                 {
+                    cout<<"CAIU SO AQUI?"<<endl;
                     Trail *temp = new Trail();
                     temp->trail_type = cover_type;
                     for(char input : it1_trail.input)
                         temp->input.push_back(input);
                     for(char input : trail_it.input)
                         temp->input.push_back(input);
-                    cout<<"Concatenou, adicionando ";
                     list_it.trails.push_back(*temp);
                     //list_it.trails.erase(trail_it);
                 }
                 else
                 {
-                    list_it.trails.push_back(it1_trail);
+                    cout<<"adicionando "<<it1_trail.input.front()<<endl;
+                    cout<<"nao concatenaou, adicionando ";
+                    for(char it : trail_it.input)
+                    cout<<it<<",";
+                    cout<<" TIPO "<<trail_it.trail_type<<endl;
+                    Trail *temp = new Trail();
+                    temp->trail_type = it1_trail.trail_type;
+                    for(char input : it1_trail.input)
+                        temp->input.push_back(input);
+                    list_it.trails.push_back(*temp);
                 }
             }
         }
         TC tc_it1;
         tc_list.push_front(tc_it1);
+        cout<<"TC criado"<<endl;
         bool concatenated = false;
         for(Trail it2_trail : cover2.trails)
         {
@@ -180,11 +176,11 @@ CTC* Concatenate(TC cover1, TC cover2, int type)
 
                 if(cover_type > 11)
                 {
-                    tc_list.front().trails.push_back(it2_trail);
-                    cout<<"nao concatenaou, adicionando ";
-                    for(char it : it2_trail.input)
-                    cout<<it<<",";
-                    cout<<" TIPO "<<it2_trail.trail_type<<endl;
+                    Trail *temp = new Trail();
+                    temp->trail_type = it2_trail.trail_type;
+                    for(char input : it2_trail.input)
+                        temp->input.push_back(input);
+                    tc_list.front().trails.push_front(*temp);
                     tc_list.front().cover_type = cover_type;
                 }
                 else
@@ -195,10 +191,6 @@ CTC* Concatenate(TC cover1, TC cover2, int type)
                         temp->input.push_back(input);
                     for(char input : it2_trail.input)
                         temp->input.push_back(input);
-                    cout<<"Concatenou, adicionando ";
-                    for(char it : temp->input)
-                    cout<<it<<",";
-                    cout<<" TIPO "<<temp->trail_type<<endl;
                     tc_list.front().trails.push_back(*temp);
                     tc_list.front().cover_type = cover_type;
                     concatenated = true;
@@ -210,6 +202,10 @@ CTC* Concatenate(TC cover1, TC cover2, int type)
             }              
 
         }
+        if(concatenated == false)
+        {
+            tc_list.front().trails.push_front(it1_trail);
+        }
     }
     //adiciona TCs ao CTC
     for(TC it_tc : tc_list)
@@ -217,5 +213,6 @@ CTC* Concatenate(TC cover1, TC cover2, int type)
         concatenate->add_cover(it_tc);
     }
     //concatenate->print_covers();
+    //cout<<"//////////////////////////////////////////////////////////////////////////////////////////"<<endl;
     return concatenate;
 }
