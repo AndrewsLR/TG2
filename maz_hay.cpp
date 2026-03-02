@@ -67,7 +67,7 @@ CTC* Node_CTC(char type, list<CTC*> child_covers)
                 {
                     CTC* temp_ctc = Concatenate(it_tc, it2_tc, type);
                     //Aqui seria necessario concatenar esses novos TCs tambem no loop
-                    //Inserir no child_covers?
+                    //E SE A FUNCAO CONCATENATE LIDAR COM CTCS, ELA MESMA PODERIA GARANTIR ITERACAO SOBRE NOVOS TCS GERADOS
                     //Criar ctcs descartaveis e iterar sobre eles?
                     for(TC it_ctc: temp_ctc->covers)
                     {
@@ -147,22 +147,16 @@ CTC* Concatenate(TC cover1, TC cover2, int type)
                 }
                 else
                 {
-                    cout<<"adicionando "<<it1_trail.input.front()<<endl;
-                    cout<<"nao concatenaou, adicionando ";
-                    for(char it : trail_it.input)
-                    cout<<it<<",";
-                    cout<<" TIPO "<<trail_it.trail_type<<endl;
                     Trail *temp = new Trail();
                     temp->trail_type = it1_trail.trail_type;
                     for(char input : it1_trail.input)
                         temp->input.push_back(input);
-                    list_it.trails.push_back(*temp);
+                    list_it.trails.push_front(*temp);
                 }
             }
         }
         TC tc_it1;
         tc_list.push_front(tc_it1);
-        cout<<"TC criado"<<endl;
         bool concatenated = false;
         for(Trail it2_trail : cover2.trails)
         {

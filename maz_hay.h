@@ -62,7 +62,7 @@ typedef struct complete_trail_cover{
 		{
 			if(it_cover->cover_type == cover.cover_type)			//if a cover of same type exists and is smaller, dont add
 			{
-				if(it_cover->trails.size() <= cover.trails.size())
+				if(it_cover->trails.size() < cover.trails.size())
 					return 0;
 				else
 					if(it_cover->trails.size() > cover.trails.size())
