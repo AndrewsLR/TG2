@@ -71,7 +71,7 @@ typedef struct complete_trail_cover{
 					}
 			}
 		}
-		covers.push_back(cover);
+		covers.push_front(cover);
 		return 1;
 	}
 	void print_covers()

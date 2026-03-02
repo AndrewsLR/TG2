@@ -57,33 +57,50 @@ CTC* Node_CTC(char type, list<CTC*> child_covers)
     //Cria nested loop para testar todas as combinacoes
     for(it = child_covers.begin(); it != child_covers.end(); it++)  // for each CTC
     {
-        for(TC it_tc : (*it)->covers) //for each TC
-        {
+            CTC temp;
             for(it2 = next(it); it2 != child_covers.end(); it2++) //for each other CTC
             {
+                for(TC it_tc : (*it)->covers) //for each TC
+                {   
                 //(*it)->print_covers();
                 //(*it2)->print_covers();
-                for(TC it2_tc : (*it2)->covers)                 //for each other TC
-                {
-                    CTC* temp_ctc = Concatenate(it_tc, it2_tc, type);
-                    //Aqui seria necessario concatenar esses novos TCs tambem no loop
-                    //E SE A FUNCAO CONCATENATE LIDAR COM CTCS, ELA MESMA PODERIA GARANTIR ITERACAO SOBRE NOVOS TCS GERADOS
-                    //Criar ctcs descartaveis e iterar sobre eles?
-                    for(TC it_ctc: temp_ctc->covers)
+                    for(TC it2_tc : (*it2)->covers)                 //for each other TC
                     {
-                        int insert = this_ctc->add_cover(it_ctc);
-                        //if(insert)
-                        //cout<<"Adicionado"<<endl;
+                        CTC* temp_ctc = Concatenate(it_tc, it2_tc, type);
+                        //Aqui seria necessario concatenar esses novos TCs tambem no loop
+                        //E SE A FUNCAO CONCATENATE LIDAR COM CTCS, ELA MESMA PODERIA GARANTIR ITERACAO SOBRE NOVOS TCS GERADOS
+                        //Criar ctcs descartaveis e iterar sobre eles?
+                        for(TC it_ctc: temp_ctc->covers)
+                        {
+                            int insert = temp.add_cover(it_ctc);
+                            //if(insert)
+                            //cout<<"Adicionado"<<endl;
+                        }
                     }
                 }
+                for(TC it_tc : temp.covers)
+                {
+                    for(TC it2_tc : (*it2)->covers)                 //for each other TC
+                    {
+                        CTC* temp_ctc = Concatenate(it_tc, it2_tc, type);
+                        //Aqui seria necessario concatenar esses novos TCs tambem no loop
+                        //E SE A FUNCAO CONCATENATE LIDAR COM CTCS, ELA MESMA PODERIA GARANTIR ITERACAO SOBRE NOVOS TCS GERADOS
+                        //Criar ctcs descartaveis e iterar sobre eles?
+                        for(TC it_ctc: temp_ctc->covers)
+                        {
+                            int insert = temp.add_cover(it_ctc);
+                            //if(insert)
+                            //cout<<"Adicionado"<<endl;
+                        }
+                    }
+                    cout<<"SERIA AQUI?"<<endl;
+                }
+            }
+            for(TC it_tc : temp.covers)
+            {
+                this_ctc->add_cover(it_tc);
             }
         }
-        //this_ctc->print_covers();
-       /* for(TC it_this : this_ctc->covers)
-        {
-            (*it)->add_cover(it_this);
-        }*/
-    }
     return this_ctc;
 }
 
@@ -125,7 +142,6 @@ CTC* Concatenate(TC cover1, TC cover2, int type)
         //Cria novo TC
         for(TC list_it : tc_list)
         {
-            bool concatenated = false;
             for(Trail trail_it : list_it.trails)
             {
                 int cover_type = 0;
@@ -142,11 +158,12 @@ CTC* Concatenate(TC cover1, TC cover2, int type)
                         temp->input.push_back(input);
                     for(char input : trail_it.input)
                         temp->input.push_back(input);
-                    list_it.trails.push_back(*temp);
-                    //list_it.trails.erase(trail_it);
+                    list_it.trails.push_front(*temp);
+                   //list_it.trails.erase(&trail_it);
                 }
                 else
                 {
+                    cout<<"CAIU NO OUTRO"<<endl;
                     Trail *temp = new Trail();
                     temp->trail_type = it1_trail.trail_type;
                     for(char input : it1_trail.input)
@@ -155,6 +172,7 @@ CTC* Concatenate(TC cover1, TC cover2, int type)
                 }
             }
         }
+        cout<<"Saiu do loop passado"<<endl;
         TC tc_it1;
         tc_list.push_front(tc_it1);
         bool concatenated = false;
