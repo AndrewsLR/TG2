@@ -119,7 +119,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	CTC* trails;
 	trails = Trail_Trace(raiz_maz);
 	cout<<"FIM TRAIL TRACE"<<endl;
-	trails->print_covers();
+	//trails->print_covers();
 	pinta_arv(&raiz);
 	cout<<"Arvore binaria:"<<endl;
 	printLevelOrder(&raiz);
