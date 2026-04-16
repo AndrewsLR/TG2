@@ -1,6 +1,7 @@
 #include <queue>
 #include <fstream>
 #include "arv_bi_n.cpp"
+#include "maz_hay.cpp"
 #define INT_MAX 2147483647
 using namespace std;
 
@@ -113,14 +114,11 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 		}
 	}
 	quebra_portas(eq);
-<<<<<<< Updated upstream
-=======
-	converte(&raiz, raiz_maz);
+	//converte(&raiz, raiz_maz);
 	CTC* trails;
 	//trails = Trail_Trace(raiz_maz);
 	//cout<<"FIM TRAIL TRACE"<<endl;
 	//trails->print_covers();
->>>>>>> Stashed changes
 	pinta_arv(&raiz);
 	cout<<"Arvore binaria:"<<endl;
 	printLevelOrder(&raiz);
@@ -890,7 +888,7 @@ int place_con(list<transistor*> trans_list, list<net> &nets, int altura)
 		{
 			for(auto it = nets_tmp.begin(); it!= nets_tmp.end(); ++it)														//insere gap antes/depois de metais adjacentes para abrir espaço
 			{
-				if(it->inicio == con_pos+1)																					//se comecar depois do contato
+				if(it->inicio == con_pos+1)																					//se net comeca depois do contato
 				{
 					found = 1;
 					add_gap++;
@@ -909,6 +907,31 @@ int place_con(list<transistor*> trans_list, list<net> &nets, int altura)
 					for(auto it3 = trans_list.begin(); it3 != trans_list.end(); ++it3)										//adiciona gaps para contatos depois
 					{
 						if((*it3)->pos > con_pos)
+						{
+							(*it3)->pos++;
+						}
+					}
+					break;
+				}
+				else if(it->fim == con_pos-1)																				//se net termina antes do contato
+				{
+					found = 1;
+					add_gap++;
+					for(auto it2 = it; it2 != nets_tmp.end(); ++it2)														//adiciona gap aos nets depois
+					{
+						if(it2->fim >= con_pos)
+						{
+							it2->fim++;
+						}
+						else if(it2->inicio >= con_pos)																							//adiciona gaps aos nets que iniciam antes
+						{
+							it2->inicio++;
+							it2->fim++;
+						}
+					}
+					for(auto it3 = trans_list.begin(); it3 != trans_list.end(); ++it3)										//adiciona gaps para contatos depois
+					{
+						if((*it3)->pos >= con_pos)
 						{
 							(*it3)->pos++;
 						}
