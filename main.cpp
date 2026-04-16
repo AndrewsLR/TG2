@@ -113,6 +113,14 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 		}
 	}
 	quebra_portas(eq);
+<<<<<<< Updated upstream
+=======
+	converte(&raiz, raiz_maz);
+	CTC* trails;
+	//trails = Trail_Trace(raiz_maz);
+	//cout<<"FIM TRAIL TRACE"<<endl;
+	//trails->print_covers();
+>>>>>>> Stashed changes
 	pinta_arv(&raiz);
 	cout<<"Arvore binaria:"<<endl;
 	printLevelOrder(&raiz);
@@ -847,17 +855,24 @@ int left_edge_true(list<transistor*> trans_list, list<net> &nets)
 int place_con(list<transistor*> trans_list, list<net> &nets, int altura)
 {
 	list<transistor*>::iterator tran = trans_list.begin();
+	int add_gap = 1;
+	list<net> nets_tmp;
+	nets_tmp = nets;
+	int con_pos;
+	int found = 1;
+	if (nets.front().linha < altura && altura != 0)																				//se existir linha vazia, é roteavel(todos os contatos cabem em uma linha vazia)
+		return 1;
 	while((*tran)->tipo == 'n')
 	{
-		int con_pos = (*tran)->pos+1;
-		int found = 0;
-		for(net it : nets)
+		con_pos = (*tran)->pos+1;
+		found = 0;
+		for(net it : nets_tmp)
 		{
 			if((it.inicio < con_pos-1 && it.fim < con_pos-1) ||(it.inicio > con_pos+1))												//encontrou uma trilha que nao bate
 			{
 				int linha = it.linha;
 				int colision = 0;
-				for(net it2 : nets)																									//procura uma trilha na mesma linha que bate
+				for(net it2 : nets_tmp)																									//procura uma trilha na mesma linha que bate
 				{
 					if(it2.linha == linha)
 						if(it2.inicio <= con_pos+1 && it2.fim >= con_pos-1)																//se nao encontrar, achou espaço
@@ -871,14 +886,40 @@ int place_con(list<transistor*> trans_list, list<net> &nets, int altura)
 				}
 			}
 		}
-		if(found == 0)																										//se não encontrou espaço, verifica se existem linhas vazias
-		{																													//se existir linha vazia, é roteavel
-			if (nets.front().linha < altura && altura != 0)
-				return 1;
-			else
+		if(found == 0)																										//se não encontrou espaço, tenta inserir gap
+		{
+			for(auto it = nets_tmp.begin(); it!= nets_tmp.end(); ++it)														//insere gap antes/depois de metais adjacentes para abrir espaço
+			{
+				if(it->inicio == con_pos+1)																					//se comecar depois do contato
+				{
+					found = 1;
+					add_gap++;
+					for(auto it2 = it; it2 != nets_tmp.end(); ++it2)														//adiciona gap aos nets depois
+					{
+						if(it2->inicio > con_pos)
+						{
+							it2->inicio++;
+							it2->fim++;
+						}
+						else																								//adiciona gaps aos nets que iniciam antes
+						{
+							it2->fim++;
+						}
+					}
+					for(auto it3 = trans_list.begin(); it3 != trans_list.end(); ++it3)										//adiciona gaps para contatos depois
+					{
+						if((*it3)->pos > con_pos)
+						{
+							(*it3)->pos++;
+						}
+					}
+					break;
+				}
+			}
+			if(found == 0)
 				return 0;
 		}	
 		tran++;
-	}
-	return 1;
+	}																														
+	return add_gap;
 }

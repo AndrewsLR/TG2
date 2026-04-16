@@ -9,7 +9,11 @@
 >"saida.txt"
 >"Roteavel.txt"
 col_index=4
+<<<<<<< Updated upstream
 height=0
+=======
+height=4
+>>>>>>> Stashed changes
 exe="./imp_pandr.exe"
 
 awk "NR>=3 && NR%2==1 {print \$$col_index}" 44-6.genlib | while read -r word; do

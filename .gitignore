@@ -20,3 +20,7 @@ le_genlib.py
 *.zip
 netlists/teste.sh
 netlists/teste.sh
+*.png
+*.csv#
+*.html
+*.csv#
