@@ -852,6 +852,8 @@ int left_edge_true(list<transistor*> trans_list, list<net> &nets)
 }
 int place_con(list<transistor*> trans_list, list<net> &nets, int altura)
 {
+	//A inserção de gaps é feita apenas em contatos adjacentes ao metal horizontal. Cada gap adicionado incrementa a saida dessa função em 1, onde 0 é não roteavel e 1 é roteavel.
+	//Exemplo: um return com valor 3 significa que foram adicionados 2 gaps.
 	list<transistor*>::iterator tran = trans_list.begin();
 	int add_gap = 1;
 	list<net> nets_tmp;
