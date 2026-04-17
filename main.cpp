@@ -67,7 +67,7 @@ void escreve(list<transistor*> trans_list, string eq);	//concerta a saida (remov
 
 void clean_stack(stack<int> &stack);
 int left_edge_true(list<transistor*> trans_list, list<net> &nets); //Calcula comprimento de todas as nets, faz left edge
-int place_con(list<transistor*> trans_list, list<net> &nets, int altura); //Posiciona contatos, retornando 1 se foi possivel posicionar todos, 0 caso contrario
+int place_con(list<transistor*> trans_list, list<net> &nets, int altura, int force_gap); //Posiciona contatos, retornando 1 se foi possivel posicionar todos, 0 caso contrario
 
 node raiz;
 q_node* q_raiz;
@@ -77,9 +77,9 @@ q_node* q_raiz;
 
 int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e))), SEM INVERSORES
 {
-	if(argc != 3)
+	if(argc != 4)
 	{
-		cout<<"Use a equação boolenana e altura da biblioteca como argumentos"<<endl;
+		cout<<"Use a equação boolenana, altura da biblioteca e forçar gaps como argumentos"<<endl;
 		exit(1);
 	}			
 	list<transistor*> trans_list_n;							//transistores N
@@ -87,6 +87,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	list<net> nets_n;
 	string eq = argv[1];
 	int altura = stoi(argv[2]);
+	int force_gap = stoi(argv[3]);
 	cout <<"A equação é: "<< eq <<endl;
 	ofstream file;
 	ofstream teste;
@@ -174,7 +175,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	}
 	else
 	{
-		roteavel = place_con(trans_list_n, nets_n, altura);
+		roteavel = place_con(trans_list_n, nets_n, altura, force_gap);
 		teste.open("Roteavel.txt", std::ios::app);
 		if(roteavel)
 		{
@@ -211,6 +212,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	list<transistor*>::iterator it = trans_list_n.begin();
 	cout<<"LISTA FINAL:"<<endl;
 	print_trans(trans_list_n);
+	cout<<"Inseriu "<<roteavel-1<<" gaps"<<endl;
 
 	return 0;
 }
@@ -850,14 +852,12 @@ int left_edge_true(list<transistor*> trans_list, list<net> &nets)
 	}
 	return linha;
 }
-int place_con(list<transistor*> trans_list, list<net> &nets, int altura)
+int place_con(list<transistor*> trans_list, list<net> &nets, int altura, int force_gap)
 {
 	//A inserção de gaps é feita apenas em contatos adjacentes ao metal horizontal. Cada gap adicionado incrementa a saida dessa função em 1, onde 0 é não roteavel e 1 é roteavel.
 	//Exemplo: um return com valor 3 significa que foram adicionados 2 gaps.
 	list<transistor*>::iterator tran = trans_list.begin();
 	int add_gap = 1;
-	list<net> nets_tmp;
-	nets_tmp = nets;
 	int con_pos;
 	int found = 1;
 	if (nets.front().linha < altura && altura != 0)																				//se existir linha vazia, é roteavel(todos os contatos cabem em uma linha vazia)
@@ -866,17 +866,20 @@ int place_con(list<transistor*> trans_list, list<net> &nets, int altura)
 	{
 		con_pos = (*tran)->pos+1;
 		found = 0;
-		for(net it : nets_tmp)
+		for(net it : nets)
 		{
 			if((it.inicio < con_pos-1 && it.fim < con_pos-1) ||(it.inicio > con_pos+1))												//encontrou uma trilha que nao bate
 			{
 				int linha = it.linha;
 				int colision = 0;
-				for(net it2 : nets_tmp)																									//procura uma trilha na mesma linha que bate
+				for(net it2 : nets)																									//procura uma trilha na mesma linha que bate
 				{
 					if(it2.linha == linha)
 						if(it2.inicio <= con_pos+1 && it2.fim >= con_pos-1)																//se nao encontrar, achou espaço
+						{
 							colision = 1;
+							cout<<(*tran)->gate<<" bate em "<<it2.nome<<endl;
+						}	
 				}
 				if(colision == 0)
 				{
@@ -886,15 +889,16 @@ int place_con(list<transistor*> trans_list, list<net> &nets, int altura)
 				}
 			}
 		}
-		if(found == 0)																										//se não encontrou espaço, tenta inserir gap
+		if(found == 0 && force_gap == 1)																										//se não encontrou espaço, tenta inserir gap
 		{
-			for(auto it = nets_tmp.begin(); it!= nets_tmp.end(); ++it)														//insere gap antes/depois de metais adjacentes para abrir espaço
+			for(auto it = nets.begin(); it!= nets.end(); ++it)														//insere gap antes/depois de metais adjacentes para abrir espaço
 			{
 				if(it->inicio == con_pos+1)																					//se net comeca depois do contato
 				{
 					found = 1;
 					add_gap++;
-					for(auto it2 = it; it2 != nets_tmp.end(); ++it2)														//adiciona gap aos nets depois
+					cout<<"INSERINDO GAP na posicao "<<it->inicio<<" a direita do gate "<<(*tran)->gate<<endl;
+					for(auto it2 = nets.begin(); it2 != nets.end(); ++it2)														//adiciona gap aos nets depois
 					{
 						if(it2->inicio > con_pos)
 						{
@@ -919,7 +923,8 @@ int place_con(list<transistor*> trans_list, list<net> &nets, int altura)
 				{
 					found = 1;
 					add_gap++;
-					for(auto it2 = it; it2 != nets_tmp.end(); ++it2)														//adiciona gap aos nets depois
+					cout<<"INSERINDO GAP na posicao "<<it->fim<<" a esquerda do gate "<<(*tran)->gate<<endl;
+					for(auto it2 = nets.begin(); it2 != nets.end(); ++it2)														//adiciona gap aos nets depois
 					{
 						if(it2->fim >= con_pos)
 						{
@@ -933,7 +938,7 @@ int place_con(list<transistor*> trans_list, list<net> &nets, int altura)
 					}
 					for(auto it3 = trans_list.begin(); it3 != trans_list.end(); ++it3)										//adiciona gaps para contatos depois
 					{
-						if((*it3)->pos >= con_pos)
+						if((*it3)->pos >= con_pos-1)
 						{
 							(*it3)->pos++;
 						}
@@ -943,7 +948,9 @@ int place_con(list<transistor*> trans_list, list<net> &nets, int altura)
 			}
 			if(found == 0)
 				return 0;
-		}	
+		}
+		else if(found == 0)
+				return 0;	
 		tran++;
 	}																														
 	return add_gap;
