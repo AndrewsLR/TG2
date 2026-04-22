@@ -1,5 +1,6 @@
 #include <queue>
 #include <fstream>
+#include <algorithm>
 #include "arv_bi_n.cpp"
 #include "maz_hay.cpp"
 #define INT_MAX 2147483647
@@ -163,6 +164,10 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	cout<<"SAIDA P EM "<<saida_p<<endl;
 	//escreve(trans_list_p,eq);																									//TESTE
 	subs(saida_p,saida_n, trans_list_p);
+
+
+	list<transistor*>trans_list_copy(trans_list_n);
+
 	trans_list_n.splice(trans_list_n.end(),trans_list_p);
 	file.open("Nets.txt", std::ios::app);
 	file<<"!"+eq<<endl;
@@ -212,7 +217,34 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	list<transistor*>::iterator it = trans_list_n.begin();
 	cout<<"LISTA FINAL:"<<endl;
 	print_trans(trans_list_n);
-	cout<<"Inseriu "<<roteavel-1<<" gaps"<<endl;
+
+
+	trans_list_copy.sort([](const transistor* a, const transistor* b) {
+    return a->gate < b->gate;
+});
+
+// Debug: print sorted order
+cout << "Sorted order: ";
+for (const transistor* t : trans_list_copy) {
+    cout << t->gate << " ";
+}
+cout << endl;
+
+do {
+    for (const transistor* t : trans_list_copy) {
+        cout << t->gate << " ";
+    }
+    cout << endl;
+	//Possui order aqui
+	//Adiciona tipos P e ajusta posicoes
+		//navega lista, adiciona posicao, se net diferente da anterior +1, adiciona copia com tipo p no final, continua ate encontrar tipo p
+	//Faz routing
+	//Guardar informacoes de roteamento, altura, e largura
+} while (next_permutation(trans_list_copy.begin(), trans_list_copy.end(), 
+    [](const transistor* a, const transistor* b) {
+        return a->gate < b->gate;
+    }));
+
 
 	return 0;
 }
@@ -857,7 +889,6 @@ int place_con(list<transistor*> trans_list, list<net> &nets, int altura, int for
 	//A inserção de gaps é feita apenas em contatos adjacentes ao metal horizontal. Cada gap adicionado incrementa a saida dessa função em 1, onde 0 é não roteavel e 1 é roteavel.
 	//Exemplo: um return com valor 3 significa que foram adicionados 2 gaps.
 	list<transistor*>::iterator tran = trans_list.begin();
-	int add_gap = 1;
 	int con_pos;
 	int found = 1;
 	if (nets.front().linha < altura && altura != 0)																				//se existir linha vazia, é roteavel(todos os contatos cabem em uma linha vazia)
@@ -889,69 +920,9 @@ int place_con(list<transistor*> trans_list, list<net> &nets, int altura, int for
 				}
 			}
 		}
-		if(found == 0 && force_gap == 1)																										//se não encontrou espaço, tenta inserir gap
-		{
-			for(auto it = nets.begin(); it!= nets.end(); ++it)														//insere gap antes/depois de metais adjacentes para abrir espaço
-			{
-				if(it->inicio == con_pos+1)																					//se net comeca depois do contato
-				{
-					found = 1;
-					add_gap++;
-					cout<<"INSERINDO GAP na posicao "<<it->inicio<<" a direita do gate "<<(*tran)->gate<<endl;
-					for(auto it2 = nets.begin(); it2 != nets.end(); ++it2)														//adiciona gap aos nets depois
-					{
-						if(it2->inicio > con_pos)
-						{
-							it2->inicio++;
-							it2->fim++;
-						}
-						else																								//adiciona gaps aos nets que iniciam antes
-						{
-							it2->fim++;
-						}
-					}
-					for(auto it3 = trans_list.begin(); it3 != trans_list.end(); ++it3)										//adiciona gaps para contatos depois
-					{
-						if((*it3)->pos > con_pos)
-						{
-							(*it3)->pos++;
-						}
-					}
-					break;
-				}
-				else if(it->fim == con_pos-1)																				//se net termina antes do contato
-				{
-					found = 1;
-					add_gap++;
-					cout<<"INSERINDO GAP na posicao "<<it->fim<<" a esquerda do gate "<<(*tran)->gate<<endl;
-					for(auto it2 = nets.begin(); it2 != nets.end(); ++it2)														//adiciona gap aos nets depois
-					{
-						if(it2->fim >= con_pos)
-						{
-							it2->fim++;
-						}
-						else if(it2->inicio >= con_pos)																							//adiciona gaps aos nets que iniciam antes
-						{
-							it2->inicio++;
-							it2->fim++;
-						}
-					}
-					for(auto it3 = trans_list.begin(); it3 != trans_list.end(); ++it3)										//adiciona gaps para contatos depois
-					{
-						if((*it3)->pos >= con_pos-1)
-						{
-							(*it3)->pos++;
-						}
-					}
-					break;
-				}
-			}
-			if(found == 0)
-				return 0;
-		}
-		else if(found == 0)
-				return 0;	
+		if(found == 0)
+			return 0;	
 		tran++;
 	}																														
-	return add_gap;
+	return 1;
 }
