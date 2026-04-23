@@ -65,6 +65,7 @@ string saida_paralelo(list<transistor*> &trans_list, q_node*& root);												
 string saida_serie_p(list<transistor*> &trans_list, q_node*& root);																	//procura saida em raiz com operacao serie
 string saida_paralelo_p(list<transistor*> &trans_list, q_node*& root);																//procura saida em raiz com operacao paralelo
 void escreve(list<transistor*> trans_list, string eq);	//concerta a saida (remove net a mais criado quando expressão mas externa e +) e escreve em .spice
+int ajusta_lista(list<transistor*> trans_list);
 
 void clean_stack(stack<int> &stack);
 int left_edge_true(list<transistor*> trans_list, list<net> &nets); //Calcula comprimento de todas as nets, faz left edge
@@ -231,13 +232,13 @@ for (const transistor* t : trans_list_copy) {
 cout << endl;
 
 do {
-    for (const transistor* t : trans_list_copy) {
-        cout << t->gate << " ";
-    }
-    cout << endl;
 	//Possui order aqui
 	//Adiciona tipos P e ajusta posicoes
-		//navega lista, adiciona posicao, se net diferente da anterior +1, adiciona copia com tipo p no final, continua ate encontrar tipo p
+	
+	ajusta_lista(trans_list_copy);
+	for (const transistor* t : trans_list_copy) {
+        cout << t->gate << " Posicao "<<t->pos<<endl;
+    }	
 	//Faz routing
 	//Guardar informacoes de roteamento, altura, e largura
 } while (next_permutation(trans_list_copy.begin(), trans_list_copy.end(), 
@@ -247,6 +248,42 @@ do {
 
 
 	return 0;
+}
+
+int ajusta_lista(list<transistor*> trans_list)
+{
+	//navega lista, adiciona posicao, se net diferente da anterior +1, adiciona copia com tipo p no final, continua ate encontrar tipo p
+	//verificar se e possivel fazer flip de transistor?
+	int pos = 1;
+	for(auto it = trans_list.begin(); it != trans_list.end(); it++)
+	{
+		if(pos > 1 && it != trans_list.begin())
+		{
+			it--;
+			string prev_net = (*it)->source;
+			it++;
+			if((*it)->drain != prev_net)
+			{
+				(*it)->pos = pos+1;
+				pos = pos+4;
+			}
+			else
+			{
+				cout<<"ELSE"<<endl;
+				(*it)->pos = pos;
+				pos = pos+3;
+			}
+		}
+		else
+		{
+			cout<<"ELSE"<<endl;
+			(*it)->pos = pos;
+			pos = pos+3;
+		}
+		//trans_list.emplace_back((*it));
+		//trans_list.back()->tipo='p';
+	}
+	return 1;
 }
 
 void quebra_portas(string eq)		
