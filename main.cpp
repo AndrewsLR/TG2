@@ -169,6 +169,8 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 
 	list<transistor*>trans_list_copy(trans_list_n);
 
+	list<transistor*>trans_list_copy_p(trans_list_p);
+
 	trans_list_n.splice(trans_list_n.end(),trans_list_p);
 	file.open("Nets.txt", std::ios::app);
 	file<<"!"+eq<<endl;
@@ -219,7 +221,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	cout<<"LISTA FINAL:"<<endl;
 	print_trans(trans_list_n);
 
-
+cout<<"GERANDO TODOS OS ORDENAMENTOS PARA N"<<endl;
 	trans_list_copy.sort([](const transistor* a, const transistor* b) {
     return a->gate < b->gate;
 });
@@ -246,6 +248,34 @@ do {
         return a->gate < b->gate;
     }));
 
+cout<<"GERANDO TODOS OS ORDENAMENTOS PARA P"<<endl;
+		trans_list_copy_p.sort([](const transistor* a, const transistor* b) {
+    return a->gate < b->gate;
+});
+
+// Debug: print sorted order
+cout << "Sorted order: ";
+for (const transistor* t : trans_list_copy_p) {
+    cout << t->gate << " ";
+}
+cout << endl;
+
+do {
+	//Possui order aqui
+	//Adiciona tipos P e ajusta posicoes
+	
+	ajusta_lista(trans_list_copy_p);
+	for (const transistor* t : trans_list_copy_p) {
+        cout << t->gate << " Posicao "<<t->pos<<endl;
+    }	
+	//Faz routing
+	//Guardar informacoes de roteamento, altura, e largura
+} while (next_permutation(trans_list_copy_p.begin(), trans_list_copy_p.end(), 
+    [](const transistor* a, const transistor* b) {
+        return a->gate < b->gate;
+    }));
+
+
 
 	return 0;
 }
@@ -253,7 +283,7 @@ do {
 int ajusta_lista(list<transistor*> trans_list)
 {
 	//navega lista, adiciona posicao, se net diferente da anterior +1, adiciona copia com tipo p no final, continua ate encontrar tipo p
-	//verificar se e possivel fazer flip de transistor?
+	//verificar se e possivel fazer flip de transistor
 	int pos = 1;
 	for(auto it = trans_list.begin(); it != trans_list.end(); it++)
 	{
@@ -264,19 +294,23 @@ int ajusta_lista(list<transistor*> trans_list)
 			it++;
 			if((*it)->drain != prev_net)
 			{
+				if((*it)->source == prev_net)											//flipar se diminuir gaps
+				{
+					string temp = (*it)->source;
+					(*it)->source = (*it)->drain;
+					(*it)->drain = temp;
+				}
 				(*it)->pos = pos+1;
 				pos = pos+4;
 			}
 			else
 			{
-				cout<<"ELSE"<<endl;
 				(*it)->pos = pos;
 				pos = pos+3;
 			}
 		}
 		else
 		{
-			cout<<"ELSE"<<endl;
 			(*it)->pos = pos;
 			pos = pos+3;
 		}
