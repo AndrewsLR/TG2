@@ -221,61 +221,60 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	cout<<"LISTA FINAL:"<<endl;
 	print_trans(trans_list_n);
 
-cout<<"GERANDO TODOS OS ORDENAMENTOS PARA N"<<endl;
+
+	ofstream ordens;
 	trans_list_copy.sort([](const transistor* a, const transistor* b) {
     return a->gate < b->gate;
 });
 
-// Debug: print sorted order
-cout << "Sorted order: ";
-for (const transistor* t : trans_list_copy) {
-    cout << t->gate << " ";
-}
-cout << endl;
-
-do {
-	//Possui order aqui
-	//Adiciona tipos P e ajusta posicoes
-	
-	ajusta_lista(trans_list_copy);
-	for (const transistor* t : trans_list_copy) {
-        cout << t->gate << " Posicao "<<t->pos<<endl;
-    }	
-	//Faz routing
-	//Guardar informacoes de roteamento, altura, e largura
-} while (next_permutation(trans_list_copy.begin(), trans_list_copy.end(), 
-    [](const transistor* a, const transistor* b) {
-        return a->gate < b->gate;
-    }));
-
-cout<<"GERANDO TODOS OS ORDENAMENTOS PARA P"<<endl;
 		trans_list_copy_p.sort([](const transistor* a, const transistor* b) {
     return a->gate < b->gate;
 });
 
 // Debug: print sorted order
-cout << "Sorted order: ";
+cout << "Sorted order N: ";
+for (const transistor* t : trans_list_copy) {
+    cout << t->gate << " ";
+}
+cout << endl;
+// Debug: print sorted order
+cout << "Sorted order P: ";
 for (const transistor* t : trans_list_copy_p) {
     cout << t->gate << " ";
 }
 cout << endl;
-
+ordens.open("Ordens_e_alturas.txt", std::ios::app);
+ordens<<"Função !"<<eq<<endl;
 do {
 	//Possui order aqui
 	//Adiciona tipos P e ajusta posicoes
 	
+	ajusta_lista(trans_list_copy);
 	ajusta_lista(trans_list_copy_p);
-	for (const transistor* t : trans_list_copy_p) {
-        cout << t->gate << " Posicao "<<t->pos<<endl;
-    }	
+
+	list<net> nets;
+	list<transistor*>temp(trans_list_copy);
+	temp.insert(temp.end(), trans_list_copy_p.begin(), trans_list_copy_p.end());
+
+	int altura = left_edge_true(temp, nets);
+	for (const transistor* t : temp)
+	{
+    	if(t->tipo == 'n')
+			ordens << t->gate <<" ";
+    }
+	ordens<<"Altura "<<altura<<endl;
+	
 	//Faz routing
 	//Guardar informacoes de roteamento, altura, e largura
-} while (next_permutation(trans_list_copy_p.begin(), trans_list_copy_p.end(), 
+} while (next_permutation(trans_list_copy.begin(), trans_list_copy.end(), 
+    [](const transistor* a, const transistor* b) {
+        return a->gate < b->gate;
+    }) && next_permutation(trans_list_copy_p.begin(), trans_list_copy_p.end(), 
     [](const transistor* a, const transistor* b) {
         return a->gate < b->gate;
     }));
 
-
+	ordens.close();
 
 	return 0;
 }
