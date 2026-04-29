@@ -165,11 +165,18 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	cout<<"SAIDA P EM "<<saida_p<<endl;
 	//escreve(trans_list_p,eq);																									//TESTE
 	subs(saida_p,saida_n, trans_list_p);
+	
+	list<transistor*>trans_list_copy;
+	list<transistor*>trans_list_copy_p;
+	for (const auto* t : trans_list_n) 
+	{
+    	trans_list_copy.push_back(new transistor(*t)); // copies the object itself
+	}
 
-
-	list<transistor*>trans_list_copy(trans_list_n);
-
-	list<transistor*>trans_list_copy_p(trans_list_p);
+	for (const auto* t : trans_list_p) 
+	{
+    	trans_list_copy_p.push_back(new transistor(*t)); // copies the object itself
+	}
 
 	trans_list_n.splice(trans_list_n.end(),trans_list_p);
 	file.open("Nets.txt", std::ios::app);
@@ -199,6 +206,7 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
 	}
 	
 	subs(saida_n,"Z",trans_list_n);
+
 	escreve(trans_list_n,eq);
 	if (!file.is_open()) {
     std::cerr << "Failed to open file." << std::endl;
@@ -231,24 +239,12 @@ int main(int argc, char *argv[])					// TEM QUE ESTAR NO FORMATO (a*(b+c*(d+e)))
     return a->gate < b->gate;
 });
 
-// Debug: print sorted order
-cout << "Sorted order N: ";
-for (const transistor* t : trans_list_copy) {
-    cout << t->gate << " ";
-}
-cout << endl;
-// Debug: print sorted order
-cout << "Sorted order P: ";
-for (const transistor* t : trans_list_copy_p) {
-    cout << t->gate << " ";
-}
-cout << endl;
-ordens.open("Ordens_e_alturas.txt", std::ios::app);
+ordens.open("order_track.txt", std::ios::app);
 ordens<<"Função !"<<eq<<endl;
 do {
 	//Possui order aqui
 	//Adiciona tipos P e ajusta posicoes
-	
+
 	ajusta_lista(trans_list_copy);
 	ajusta_lista(trans_list_copy_p);
 
@@ -256,13 +252,36 @@ do {
 	list<transistor*>temp(trans_list_copy);
 	temp.insert(temp.end(), trans_list_copy_p.begin(), trans_list_copy_p.end());
 
-	int altura = left_edge_true(temp, nets);
-	for (const transistor* t : temp)
+	for (const transistor* t : temp) 
 	{
-    	if(t->tipo == 'n')
-			ordens << t->gate <<" ";
+    	cout <<t->drain<<" "<<t->gate<<" "<<t->source<<endl;
+	}
+	//subs(saida_n,"Z",temp);
+	int tracks = left_edge_true(temp, nets);
+
+	while(!nets.empty())
+	{
+		cout<<nets.front().nome<<" "<<nets.front().inicio<<" "<<nets.front().fim<<" "<<"Linha "<<nets.front().linha<<endl;
+		nets.pop_front();
+	}
+		cout<<endl;
+	int gaps = 0;
+	for (auto it = temp.begin(); it != temp.end(); it++)
+	{
+    	if(it != temp.begin())
+		{
+			auto prev_it = prev(it);
+			if((*prev_it)->pos != (*it)->pos-3 && (*prev_it)->tipo == (*it)->tipo)
+			{
+				//cout<<(*it)->gate<<" "<<"Anterior "<<(*prev_it)->pos<<" atual "<<(*it)->pos<<endl;
+				gaps++;
+			}
+		}
+		if((*it)->tipo == 'n')
+			ordens << (*it)->gate <<" ";
     }
-	ordens<<"Altura "<<altura<<endl;
+	int rout = place_con(temp, nets, altura, force_gap);
+	ordens<<"Tracks "<<tracks<<" Gaps "<<gaps<<" Roteavel "<<rout<<endl;
 	
 	//Faz routing
 	//Guardar informacoes de roteamento, altura, e largura
@@ -298,9 +317,14 @@ int ajusta_lista(list<transistor*> trans_list)
 					string temp = (*it)->source;
 					(*it)->source = (*it)->drain;
 					(*it)->drain = temp;
+					(*it)->pos = pos;
+					pos = pos+3;
 				}
-				(*it)->pos = pos+1;
-				pos = pos+4;
+				else
+				{
+					(*it)->pos = pos+1;
+					pos = pos+4;
+				}
 			}
 			else
 			{
@@ -956,8 +980,6 @@ int left_edge_true(list<transistor*> trans_list, list<net> &nets)
 }
 int place_con(list<transistor*> trans_list, list<net> &nets, int altura, int force_gap)
 {
-	//A inserção de gaps é feita apenas em contatos adjacentes ao metal horizontal. Cada gap adicionado incrementa a saida dessa função em 1, onde 0 é não roteavel e 1 é roteavel.
-	//Exemplo: um return com valor 3 significa que foram adicionados 2 gaps.
 	list<transistor*>::iterator tran = trans_list.begin();
 	int con_pos;
 	int found = 1;

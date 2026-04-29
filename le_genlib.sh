@@ -9,8 +9,9 @@
 >"Nets.txt"
 >"saida.txt"
 >"Roteavel.txt"
+>"order_track.txt"
 col_index=4
-height=4
+height=5
 force_gap=0
 exe="./imp_pandr.exe"
 
